@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Magazzino</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a"/>
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #cbd5e1; }
+        .card { background-color: #1e293b; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #334155; }
+        .btn { transition: all 0.2s ease-in-out; border-radius: 0.5rem; font-weight: 600; }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn:disabled { background-color: #475569; color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-primary { background-color: #0ea5e9; color: white; }
+        .btn-primary:hover:not(:disabled) { background-color: #0284c7; }
+        .btn-secondary { background-color: #38bdf8; color: white; }
+        .btn-secondary:hover:not(:disabled) { background-color: #0ea5e9; }
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-danger:hover:not(:disabled) { background-color: #dc2626; }
+        .btn-warning { background-color: #f59e0b; color: white; }
+        .btn-warning:hover:not(:disabled) { background-color: #d97706; }
+        .input-field { border-radius: 0.5rem; border: 1px solid #475569; padding: 0.75rem 1rem; width: 100%; background-color: #334155; color: #e2e8f0; }
+        .input-field::placeholder { color: #94a3b8; }
+        .input-field:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3); }
+        .hidden { display: none; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 50; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
+        .modal-content { background-color: #1e293b; border-radius: 0.75rem; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.2); border: 1px solid #334155; padding: 2rem; }
+        .rack-visualization { display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 1.5rem; background-color: #0f172a; border-radius: 0.5rem; border: 1px solid #334155; min-height: 150px; }
+        .material-shape { width: 120px; height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.5rem; border: 2px solid #475569; background: linear-gradient(145deg, #2a3a50, #1e293b); color: #e2e8f0; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .material-shape.tondo { border-radius: 50%; }
+        .material-shape.quadro, .material-shape.piatto { border-radius: 0.5rem; }
+        .material-shape.esagonale { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .material-shape:hover { transform: translateY(-4px); border-color: #0ea5e9; box-shadow: 0 10px 20px rgba(0,0,0,0.25); }
+        .material-shape.highlight { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.4); transform: translateY(-2px); }
+        .material-name { font-weight: 700; font-size: 0.875rem; color: #f1f5f9; }
+        .material-dim { font-size: 0.75rem; color: #94a3b8; }
+        .material-len { font-size: 1.125rem; font-weight: 600; margin-top: 4px; color: #f8fafc;}
+        .material-actions { position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); display: none; gap: 0.5rem; background: #334155; padding: 5px; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: 1px solid #475569; }
+        .material-shape:hover .material-actions { display: flex; }
+        .material-optional-info { position: absolute; top: 5px; right: 5px; display: flex; flex-direction: column; gap: 5px; }
+        .info-badge { font-size: 10px; background-color: rgba(14, 165, 233, 0.7); color: white; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        .loader-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.8); display: flex; align-items: center; justify-content: center; z-index: 60; backdrop-filter: blur(2px); }
+        .spinner { border: 4px solid rgba(14, 165, 233, 0.2); border-top: 4px solid #0ea5e9; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        .fa-spin-custom { animation: spin 1.5s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-300">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="mb-10 text-center">
+            <h1 class="text-5xl font-bold text-slate-100">Magazzino Visuale</h1>
+            <p class="text-xl text-slate-400 mt-2">Connesso a Google Sheets</p>
+        </header>
+        <div id="main-content" class="relative">
+            <div id="app-loader" class="loader-overlay hidden"><div class="spinner"></div></div>
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+                <div class="card p-6 lg:col-span-2">
+                    <h2 class="text-2xl font-semibold text-slate-100 mb-4 border-b border-slate-700 pb-3"><i class="fas fa-layer-group mr-2 text-sky-500"></i>Crea Rastrelliera</h2>
+                    <form id="add-rack-form"><div class="mb-4"><label for="rack-name" class="block text-sm font-medium text-slate-300 mb-1">Nome</label><input type="text" id="rack-name" class="input-field" placeholder="Es. Rastrelliera A1" required></div><button type="submit" class="btn btn-primary w-full py-3 px-4 text-base"><i class="fas fa-plus-circle mr-2"></i>Aggiungi</button></form>
+                </div>
+                <div class="card p-6 lg:col-span-3">
+                    <h2 class="text-2xl font-semibold text-slate-100 mb-4 border-b border-slate-700 pb-3"><i class="fas fa-dolly mr-2 text-sky-500"></i>Carica Nuova Barra</h2>
+                    <form id="add-material-form"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="md:col-span-2"><label for="material-name" class="block text-sm font-medium text-slate-300 mb-1">Materiale</label><input type="text" id="material-name" class="input-field" placeholder="Es. C40" required></div><div><label for="material-shape" class="block text-sm font-medium text-slate-300 mb-1">Forma</label><select id="material-shape" class="input-field" required><option value="">-- Seleziona --</option><option value="tondo">Tondo</option><option value="quadro">Quadro/Rettangolare</option><option value="esagonale">Esagonale</option><option value="piatto">Piatto</option></select></div><div id="diameter-group" class="hidden"><label for="material-diameter" class="block text-sm font-medium text-slate-300 mb-1">Diametro (mm)</label><input type="number" id="material-diameter" class="input-field" placeholder="Es. 20"></div><div id="dimension-single-group" class="hidden"><label for="material-dimension-single" class="block text-sm font-medium text-slate-300 mb-1">Lato (mm)</label><input type="number" id="material-dimension-single" class="input-field" placeholder="Es. 30"></div><div id="dimension-wh-group" class="hidden md:col-span-2"><div class="grid grid-cols-2 gap-4"><div><label for="material-width" class="block text-sm font-medium text-slate-300 mb-1">Base (mm)</label><input type="number" id="material-width" class="input-field" placeholder="Es. 40"></div><div><label for="material-height" class="block text-sm font-medium text-slate-300 mb-1">Altezza (mm)</label><input type="number" id="material-height" class="input-field" placeholder="Es. 60"></div></div></div><div class="md:col-span-2"><label for="material-length" class="block text-sm font-medium text-slate-300 mb-1">Lunghezza (mm)</label><input type="number" id="material-length" class="input-field" placeholder="Es. 3000" required></div><div class="md:col-span-2"><hr class="border-slate-700 my-2"></div><div class="md:col-span-2"><label for="rack-select" class="block text-sm font-medium text-slate-300 mb-1">Rastrelliera</label><select id="rack-select" class="input-field" required><option value="">-- Scegli --</option></select></div><div><label for="material-commessa" class="block text-sm font-medium text-slate-400 mb-1">Commessa (Opt.)</label><input type="text" id="material-commessa" class="input-field" placeholder="C-1234"></div><div><label for="material-certificato" class="block text-sm font-medium text-slate-400 mb-1">Certificato (Opt.)</label><input type="text" id="material-certificato" class="input-field" placeholder="F-5678"></div></div><button type="submit" class="btn btn-secondary w-full mt-6 py-3 px-4 text-base"><i class="fas fa-check-circle mr-2"></i>Carica Materiale</button></form>
+                </div>
+            </div>
+            <div class="card p-6 mb-8">
+                 <h2 class="text-2xl font-semibold text-slate-100 mb-4 flex items-center"><i class="fas fa-filter mr-3 text-sky-500"></i>Filtri di Ricerca</h2>
+                 <form id="search-filter-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"><div class="lg:col-span-2"><label for="search-text" class="block text-sm font-medium text-slate-300 mb-1">Testo (Mat, Commessa, Cert.)</label><input type="text" id="search-text" class="input-field" placeholder="Cerca..."></div><div><label for="search-shape" class="block text-sm font-medium text-slate-300 mb-1">Forma</label><select id="search-shape" class="input-field"><option value="">Tutte</option><option value="tondo">Tondo</option><option value="quadro">Quadro/Rett.</option><option value="esagonale">Esagonale</option><option value="piatto">Piatto</option></select></div><div><label for="search-dim-min" class="block text-sm font-medium text-slate-300 mb-1">Dim. Min (mm)</label><input type="number" id="search-dim-min" class="input-field" placeholder="Es. 50"></div><div><label for="search-dim-max" class="block text-sm font-medium text-slate-300 mb-1">Dim. Max (mm)</label><input type="number" id="search-dim-max" class="input-field" placeholder="Es. 60"></div><div class="md:col-span-2 lg:col-span-5 flex items-end gap-4 mt-4"><button type="submit" class="btn btn-primary w-full py-2.5"><i class="fas fa-search mr-2"></i>Applica Filtri</button><button type="reset" class="btn bg-slate-600 text-slate-100 w-full py-2.5"><i class="fas fa-times mr-2"></i>Resetta</button><button id="refresh-btn" class="btn btn-primary p-3 aspect-square flex items-center justify-center text-xl"><i id="refresh-icon" class="fas fa-sync-alt"></i></button></div></form>
+             </div>
+            <div id="warehouse-display" class="space-y-8"></div>
+        </div>
+    </div>
+    <div id="action-modal" class="modal-overlay hidden"><div class="modal-content"><h3 class="text-2xl font-bold mb-4 text-slate-100" id="modal-title"></h3><div id="modal-body"></div></div></div>
+
+    <script>
+    // Registrazione del Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => console.log('Service Worker registrato con successo:', registration))
+                .catch(error => console.log('Registrazione Service Worker fallita:', error));
+        });
+    }
+    // Codice Javascript dell'applicazione (identico a prima)
+    document.addEventListener('DOMContentLoaded', () => {
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyaE0na5I-a_nBzUIlmT_49-wmbqb0LGdhEohTqO3EPUiZNTiRpHMuzmwpfRvYHkoU/exec';
+        let warehouseData = [];
+        const dom = {
+            addRackForm: document.getElementById('add-rack-form'),
+            addMaterialForm: document.getElementById('add-material-form'),
+            warehouseDisplay: document.getElementById('warehouse-display'),
+            rackSelect: document.getElementById('rack-select'),
+            refreshBtn: document.getElementById('refresh-btn'),
+            refreshIcon: document.getElementById('refresh-icon'),
+            appLoader: document.getElementById('app-loader'),
+            searchForm: document.getElementById('search-filter-form'),
+            search: { text: document.getElementById('search-text'), shape: document.getElementById('search-shape'), minDim: document.getElementById('search-dim-min'), maxDim: document.getElementById('search-dim-max') },
+            material: { name: document.getElementById('material-name'), shape: document.getElementById('material-shape'), length: document.getElementById('material-length'), diameterGroup: document.getElementById('diameter-group'), diameter: document.getElementById('material-diameter'), dimensionSingleGroup: document.getElementById('dimension-single-group'), dimensionSingle: document.getElementById('material-dimension-single'), dimensionWhGroup: document.getElementById('dimension-wh-group'), width: document.getElementById('material-width'), height: document.getElementById('material-height'), commessa: document.getElementById('material-commessa'), certificato: document.getElementById('material-certificato') },
+            modal: { self: document.getElementById('action-modal'), title: document.getElementById('modal-title'), body: document.getElementById('modal-body') }
+        };
+        const showLoader = (show) => {
+            dom.appLoader.classList.toggle('hidden', !show);
+            document.querySelectorAll('button, input, select').forEach(el => el.disabled = show);
+        };
+        const fetchData = async () => {
+            if (!SCRIPT_URL.startsWith('https')) {
+                showModal('Configurazione Necessaria', '<p>Per favore, incolla l\'URL della tua Web App di Google Apps Script nella variabile SCRIPT_URL.</p>');
+                return;
+            }
+            dom.refreshIcon.classList.add('fa-spin-custom');
+            dom.refreshBtn.disabled = true;
+            try {
+                const response = await fetch(SCRIPT_URL);
+                if (!response.ok) throw new Error(`Errore di rete: ${response.statusText}`);
+                warehouseData = await response.json();
+                renderWarehouse();
+            } catch (error) {
+                console.error('Errore nel caricamento dati:', error);
+                showModal('Errore di Caricamento', `<p>Impossibile caricare i dati.</p><p class="mt-2 text-sm text-slate-400">${error.message}</p>`);
+            } finally {
+                dom.refreshIcon.classList.remove('fa-spin-custom');
+                dom.refreshBtn.disabled = false;
+            }
+        };
+        const saveData = async () => {
+            showLoader(true);
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(warehouseData)
+                });
+            } catch (error) {
+                console.error('Errore nel salvataggio dati:', error);
+                showModal('Errore di Salvataggio', `<p>Impossibile salvare i dati.</p><p class="mt-2 text-sm text-slate-400">${error.message}</p>`);
+            } finally {
+                await fetchData();
+                showLoader(false);
+            }
+        };
+        const showModal = (title, content, callback) => {
+            dom.modal.title.textContent = title;
+            dom.modal.body.innerHTML = content;
+            dom.modal.self.classList.remove('hidden');
+            if(callback) callback();
+        };
+        const hideModal = () => dom.modal.self.classList.add('hidden');
+        const checkDimensionInRange = (material, minDim, maxDim) => {
+            if (isNaN(minDim) && isNaN(maxDim)) return true;
+            const matDim = material.dimension;
+            if (material.shape === 'tondo' || material.shape === 'esagonale') {
+                const d = parseFloat(matDim);
+                if (isNaN(d)) return false;
+                const minOK = isNaN(minDim) || d >= minDim;
+                const maxOK = isNaN(maxDim) || d <= maxDim;
+                return minOK && maxOK;
+            } else {
+                const dims = matDim.split('x').map(s => parseFloat(s.trim()));
+                return dims.some(d => {
+                    if (isNaN(d)) return false;
+                    const minOK = isNaN(minDim) || d >= minDim;
+                    const maxOK = isNaN(maxDim) || d <= maxDim;
+                    return minOK && maxOK;
+                });
+            }
+        };
+        const renderWarehouse = () => {
+            const textFilter = dom.search.text.value.toLowerCase().trim();
+            const shapeFilter = dom.search.shape.value;
+            const minDimFilter = parseFloat(dom.search.minDim.value);
+            const maxDimFilter = parseFloat(dom.search.maxDim.value);
+            const hasActiveFilters = textFilter || shapeFilter || !isNaN(minDimFilter) || !isNaN(maxDimFilter);
+            dom.warehouseDisplay.innerHTML = '';
+            dom.rackSelect.innerHTML = '<option value="">-- Scegli --</option>';
+            if (warehouseData.length === 0) {
+                dom.warehouseDisplay.innerHTML = `<div class="text-center py-16 card"><i class="fas fa-warehouse text-5xl text-slate-500 mb-4"></i><h3 class="text-2xl font-semibold text-slate-300">Il magazzino è vuoto.</h3><p class="text-slate-400">Inizia creando una rastrelliera.</p></div>`;
+                return;
+            }
+            warehouseData.forEach(rack => {
+                const option = document.createElement('option');
+                option.value = rack.id;
+                option.textContent = rack.name;
+                dom.rackSelect.appendChild(option);
+                const rackCard = document.createElement('div');
+                rackCard.className = 'card p-4';
+                const filteredMaterials = (rack.materials || []).filter(material => {
+                    const textMatch = !textFilter || `${material.name} ${material.commessa || ''} ${material.certificato || ''}`.toLowerCase().includes(textFilter);
+                    const shapeMatch = !shapeFilter || material.shape === shapeFilter;
+                    const dimMatch = checkDimensionInRange(material, minDimFilter, maxDimFilter);
+                    return textMatch && shapeMatch && dimMatch;
+                });
+                let materialsHTML = '';
+                if (filteredMaterials.length > 0) {
+                    filteredMaterials.sort((a,b) => a.name.localeCompare(b.name)).forEach(material => {
+                        let optionalInfoHTML = '';
+                        if (material.commessa || material.certificato) {
+                            optionalInfoHTML += '<div class="material-optional-info">';
+                            if (material.commessa) optionalInfoHTML += `<span class="info-badge" title="Commessa: ${material.commessa}"><i class="fas fa-briefcase"></i></span>`;
+                            if (material.certificato) optionalInfoHTML += `<span class="info-badge" title="Certificato: ${material.certificato}"><i class="fas fa-file-alt"></i></span>`;
+                            optionalInfoHTML += '</div>';
+                        }
+                        const dimPrefix = material.shape === 'tondo' ? 'Ø' : '';
+                        materialsHTML += `<div class="material-shape ${material.shape} ${hasActiveFilters ? 'highlight' : ''}">${optionalInfoHTML}<span class="material-name">${material.name}</span><span class="material-dim">${dimPrefix}${material.dimension} mm</span><span class="material-len">${material.length} mm</span><div class="material-actions"><button data-action="unload" data-rack-id="${rack.id}" data-material-id="${material.id}" class="btn btn-warning text-xs w-9 h-9 rounded-full flex items-center justify-center" title="Scarica"><i class="fas fa-arrow-down"></i></button><button data-action="delete" data-rack-id="${rack.id}" data-material-id="${material.id}" class="btn btn-danger text-xs w-9 h-9 rounded-full flex items-center justify-center" title="Elimina"><i class="fas fa-trash-alt"></i></button></div></div>`;
+                    });
+                } else {
+                     materialsHTML = `<p class="text-slate-400 m-auto"><i class="fas fa-box-open mr-2"></i>Nessun materiale presente ${hasActiveFilters ? 'per i filtri applicati' : ''}.</p>`;
+                }
+                rackCard.innerHTML = `<h3 class="text-3xl font-bold mb-4 flex items-center text-slate-200"><i class="fas fa-layer-group mr-3 text-sky-500"></i>${rack.name}</h3><div id="rack-visual-${rack.id}" class="rack-visualization">${materialsHTML}</div>`;
+                dom.warehouseDisplay.appendChild(rackCard);
+            });
+        };
+        dom.refreshBtn.addEventListener('click', fetchData);
+        dom.searchForm.addEventListener('submit', e => { e.preventDefault(); renderWarehouse(); });
+        dom.searchForm.addEventListener('reset', () => { setTimeout(renderWarehouse, 0); });
+        dom.material.shape.addEventListener('change', () => {
+            const selectedShape = dom.material.shape.value;
+            dom.material.diameterGroup.classList.add('hidden');
+            dom.material.dimensionSingleGroup.classList.add('hidden');
+            dom.material.dimensionWhGroup.classList.add('hidden');
+            dom.material.diameter.required = false;
+            dom.material.dimensionSingle.required = false;
+            dom.material.width.required = false;
+            dom.material.height.required = false;
+            if (selectedShape === 'tondo') { dom.material.diameterGroup.classList.remove('hidden'); dom.material.diameter.required = true; } 
+            else if (selectedShape === 'esagonale') { dom.material.dimensionSingleGroup.classList.remove('hidden'); dom.material.dimensionSingle.required = true; } 
+            else if (selectedShape === 'quadro' || selectedShape === 'piatto') { dom.material.dimensionWhGroup.classList.remove('hidden'); dom.material.width.required = true; dom.material.height.required = true; }
+        });
+        dom.addRackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rackName = document.getElementById('rack-name').value.trim();
+            if (!rackName) return;
+            if (warehouseData.find(rack => rack.name.toLowerCase() === rackName.toLowerCase())) {
+                showModal('Attenzione', '<p>Esiste già una rastrelliera con questo nome.</p><div class="text-right mt-6"><button id="cancel-btn" class="btn bg-slate-600 text-slate-100 py-2 px-4">Chiudi</button></div>');
+                document.getElementById('cancel-btn').onclick = hideModal;
+                return;
+            }
+            warehouseData.push({ id: Date.now(), name: rackName, materials: [] });
+            document.getElementById('rack-name').value = '';
+            await saveData();
+        });
+        dom.addMaterialForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const selectedRackId = parseInt(dom.rackSelect.value, 10);
+            const shape = dom.material.shape.value;
+            let dimension = '';
+            if (shape === 'tondo') { dimension = dom.material.diameter.value; } 
+            else if (shape === 'esagonale') { dimension = dom.material.dimensionSingle.value; } 
+            else if (shape === 'quadro' || shape === 'piatto') { const width = dom.material.width.value; const height = dom.material.height.value; if(width && height) dimension = `${width}x${height}`; }
+            if (isNaN(selectedRackId) || !dimension || !shape) {
+                showModal('Attenzione', '<p>Compila tutti i campi richiesti per il materiale (forma, dimensione, etc.).</p><div class="text-right mt-6"><button id="cancel-btn" class="btn bg-slate-600 text-slate-100 py-2 px-4">Chiudi</button></div>');
+                document.getElementById('cancel-btn').onclick = hideModal;
+                return;
+            }
+            const rack = warehouseData.find(r => r.id === selectedRackId);
+            if (rack) {
+                const newMaterial = { id: Date.now(), name: dom.material.name.value.trim().toUpperCase(), length: parseInt(dom.material.length.value, 10), shape, dimension, commessa: dom.material.commessa.value.trim().toUpperCase(), certificato: dom.material.certificato.value.trim().toUpperCase() };
+                if (!rack.materials) rack.materials = [];
+                rack.materials.push(newMaterial);
+                dom.addMaterialForm.reset();
+                dom.material.diameterGroup.classList.add('hidden');
+                dom.material.dimensionSingleGroup.classList.add('hidden');
+                dom.material.dimensionWhGroup.classList.add('hidden');
+                await saveData();
+            }
+        });
+        dom.modal.self.addEventListener('click', (e) => { if (e.target.id === 'cancel-btn' || e.target.classList.contains('modal-overlay')) hideModal(); });
+        dom.warehouseDisplay.addEventListener('click', (e) => {
+            const button = e.target.closest('button[data-action]');
+            if (!button) return;
+            const action = button.dataset.action;
+            const rackId = parseInt(button.dataset.rackId);
+            const materialId = parseInt(button.dataset.materialId);
+            const rack = warehouseData.find(r => r.id === rackId);
+            if (!rack) return;
+            const materialIndex = rack.materials.findIndex(m => m.id === materialId);
+            if (materialIndex === -1) return;
+            const material = rack.materials[materialIndex];
+            if (action === 'delete') {
+                const modalContent = `<p class="mb-6 text-slate-300">Sei sicuro di voler eliminare questa barra di <b>${material.name}</b>?</p><div class="flex justify-end space-x-4"><button id="cancel-btn" class="btn bg-slate-600 text-slate-100 py-2 px-5">Annulla</button><button id="confirm-delete-btn" class="btn btn-danger py-2 px-5">Elimina</button></div>`;
+                showModal('Conferma Eliminazione', modalContent, () => {
+                    document.getElementById('confirm-delete-btn').onclick = async () => {
+                        rack.materials.splice(materialIndex, 1);
+                        hideModal();
+                        await saveData();
+                    };
+                });
+            } else if (action === 'unload') {
+                const modalContent = `<p class="mb-4 text-slate-300">Da: <b>${material.name}</b><br>Lunghezza attuale: <b>${material.length} mm</b></p><form id="unload-form"><label for="unload-length" class="block text-sm font-medium text-slate-300 mb-1">Lunghezza da scaricare (mm)</label><input type="number" id="unload-length" class="input-field" min="1" max="${material.length}" required><div class="mt-6 flex justify-end space-x-4"><button type="button" id="cancel-btn" class="btn bg-slate-600 text-slate-100 py-2 px-5">Annulla</button><button type="submit" class="btn btn-warning py-2 px-5">Conferma</button></div></form>`;
+                showModal('Scarica Materiale', modalContent, () => {
+                    document.getElementById('unload-length').focus();
+                    document.getElementById('unload-form').onsubmit = async (event) => {
+                        event.preventDefault();
+                        const lengthToUnload = parseInt(document.getElementById('unload-length').value, 10);
+                        if (isNaN(lengthToUnload) || lengthToUnload <= 0 || lengthToUnload > material.length) {
+                             showModal('Errore', '<p>Inserire una lunghezza valida.</p><div class="text-right mt-6"><button id="cancel-btn" class="btn bg-slate-600 text-slate-100 py-2 px-4">Chiudi</button></div>');
+                             document.getElementById('cancel-btn').onclick = hideModal;
+                             return;
+                        }
+                        material.length -= lengthToUnload;
+                        if (material.length <= 0) rack.materials.splice(materialIndex, 1);
+                        hideModal();
+                        await saveData();
+                    };
+                });
+            }
+        });
+        fetchData();
+    });
+    </script>
+</body>
+</html>
+{
+  "name": "Gestione Magazzino",
+  "short_name": "Magazzino",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "description": "Applicazione per la gestione visuale del magazzino.",
+  "icons": [
+    {
+      "src": "icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+const CACHE_NAME = 'magazzino-cache-v1';
+const URLS_TO_CACHE = [
+  '/',
+  '/index.html',
+  'https://cdn.tailwindcss.com',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+];
+
+// Installazione del Service Worker
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Cache aperta');
+        return cache.addAll(URLS_TO_CACHE);
+      })
+  );
+});
+
+// Gestione delle richieste
+self.addEventListener('fetch', event => {
+  // Per le richieste API a Google Script, vai sempre in rete
+  if (event.request.url.includes('script.google.com')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Se la risorsa è in cache, restituiscila
+        if (response) {
+          return response;
+        }
+        // Altrimenti, recuperala dalla rete
+        return fetch(event.request);
+      })
+  );
+});
+
+// Attivazione e pulizia delle vecchie cache
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
