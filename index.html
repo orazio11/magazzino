@@ -3,420 +3,462 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestione Magazzino</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a"/>
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-
+    <title>Officina Digitale Integrata</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Librerie per QR Code -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #cbd5e1; }
-        .card { background-color: #1e293b; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #334155; }
-        .btn { transition: all 0.2s ease-in-out; border-radius: 0.5rem; font-weight: 600; }
-        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .btn:disabled { background-color: #475569; color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-primary { background-color: #0ea5e9; color: white; }
-        .btn-primary:hover:not(:disabled) { background-color: #0284c7; }
-        .btn-secondary { background-color: #38bdf8; color: white; }
-        .btn-secondary:hover:not(:disabled) { background-color: #0ea5e9; }
-        .btn-danger { background-color: #ef4444; color: white; }
-        .btn-danger:hover:not(:disabled) { background-color: #dc2626; }
-        .btn-warning { background-color: #f59e0b; color: white; }
-        .btn-warning:hover:not(:disabled) { background-color: #d97706; }
-        .input-field { border-radius: 0.5rem; border: 1px solid #475569; padding: 0.75rem 1rem; width: 100%; background-color: #334155; color: #e2e8f0; }
+        /* Stili Generali */
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* slate-900 */
+            color: #cbd5e1; /* slate-300 */
+            scroll-behavior: smooth;
+        }
+        .card { 
+            background-color: #1e293b; /* slate-800 */
+            border-radius: 0.75rem; 
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border: 1px solid #334155; /* slate-700 */
+        }
+        .btn { 
+            transition: all 0.2s ease-in-out;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+        .btn:hover:not(:disabled) { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        }
+        .btn:disabled { 
+            background-color: #475569 !important; /* slate-600 */
+            color: #94a3b8 !important; /* slate-400 */
+            cursor: not-allowed; 
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+        .btn-primary { background-color: #0ea5e9; color: white; } /* sky-500 */
+        .btn-primary:hover:not(:disabled) { background-color: #0284c7; } /* sky-600 */
+        .btn-secondary { background-color: #38bdf8; color: white; } /* sky-400 */
+        .btn-secondary:hover:not(:disabled) { background-color: #0ea5e9; } /* sky-500 */
+        .btn-danger { background-color: #ef4444; color: white; } /* red-500 */
+        .btn-danger:hover:not(:disabled) { background-color: #dc2626; } /* red-600 */
+        .btn-warning { background-color: #f59e0b; color: white; } /* amber-500 */
+        .btn-warning:hover:not(:disabled) { background-color: #d97706; } /* amber-600 */
+        .btn-success { background-color: #22c55e; color: white; } /* green-500 */
+        .btn-success:hover:not(:disabled) { background-color: #16a34a; } /* green-600 */
+        .btn-info { background-color: #6366f1; color: white; } /* indigo-500 */
+        .btn-info:hover:not(:disabled) { background-color: #4f46e5; } /* indigo-600 */
+        .btn-neutral { background-color: #64748b; color: white; } /* slate-500 */
+        .btn-neutral:hover:not(:disabled) { background-color: #475569; } /* slate-600 */
+
+        .input-field { 
+            border-radius: 0.5rem; 
+            border: 1px solid #475569; /* slate-600 */
+            padding: 0.75rem 1rem; 
+            width: 100%; 
+            background-color: #334155; /* slate-700 */
+            color: #e2e8f0; /* slate-200 */
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
         .input-field::placeholder { color: #94a3b8; }
         .input-field:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3); }
         .hidden { display: none; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 50; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.8); display: flex; align-items: center; justify-content: center; z-index: 50; transition: opacity 0.3s ease; backdrop-filter: blur(4px); }
         .modal-content { background-color: #1e293b; border-radius: 0.75rem; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.2); border: 1px solid #334155; padding: 2rem; }
-        .rack-visualization { display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 1.5rem; background-color: #0f172a; border-radius: 0.5rem; border: 1px solid #334155; min-height: 150px; }
-        .material-shape { width: 120px; height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.5rem; border: 2px solid #475569; background: linear-gradient(145deg, #2a3a50, #1e293b); color: #e2e8f0; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .material-shape.tondo { border-radius: 50%; }
-        .material-shape.quadro, .material-shape.piatto { border-radius: 0.5rem; }
-        .material-shape.esagonale { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
-        .material-shape:hover { transform: translateY(-4px); border-color: #0ea5e9; box-shadow: 0 10px 20px rgba(0,0,0,0.25); }
-        .material-shape.highlight { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.4); transform: translateY(-2px); }
-        .material-name { font-weight: 700; font-size: 0.875rem; color: #f1f5f9; }
-        .material-dim { font-size: 0.75rem; color: #94a3b8; }
-        .material-len { font-size: 1.125rem; font-weight: 600; margin-top: 4px; color: #f8fafc;}
-        .material-actions { position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); display: none; gap: 0.5rem; background: #334155; padding: 5px; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: 1px solid #475569; }
-        .material-shape:hover .material-actions { display: flex; }
-        .material-optional-info { position: absolute; top: 5px; right: 5px; display: flex; flex-direction: column; gap: 5px; }
-        .info-badge { font-size: 10px; background-color: rgba(14, 165, 233, 0.7); color: white; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
-        .loader-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.8); display: flex; align-items: center; justify-content: center; z-index: 60; backdrop-filter: blur(2px); }
+        
+        .loader-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 60; backdrop-filter: blur(2px); }
         .spinner { border: 4px solid rgba(14, 165, 233, 0.2); border-top: 4px solid #0ea5e9; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         .fa-spin-custom { animation: spin 1.5s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Stili per la navigazione */
+        .main-nav-btn {
+            background-color: #1e293b; /* slate-800 */
+            color: #94a3b8; /* slate-400 */
+            border-bottom: 4px solid transparent;
+            padding: 1rem 0.5rem;
+        }
+        .main-nav-btn.active {
+            color: #f1f5f9; /* slate-100 */
+            border-bottom-color: #0ea5e9; /* sky-500 */
+            background-color: #334155; /* slate-700 */
+        }
+        
+        /* Stili Magazzino */
+        .rack-visualization { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; padding: 1.5rem; background-color: #0f172a; border-radius: 0.5rem; border: 1px solid #334155; min-height: 150px; }
+        .material-container { position: relative; }
+        .material-shape { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.5rem; border: 2px solid #475569; color: #e2e8f0; text-align: center; transition: all 0.3s ease; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+        }
+        .material-shape.tondo { border-radius: 50%; }
+        .material-shape.quadro, .material-shape.piatto { border-radius: 0.5rem; }
+        .material-shape.esagonale { border-radius: 0; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .material-container:hover .material-shape { transform: translateY(-4px); border-color: #0ea5e9; box-shadow: 0 10px 20px rgba(0,0,0,0.25); }
+        .material-container:hover .material-actions { display: flex; }
+        .material-shape.highlight { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.4); transform: translateY(-2px); }
+        .material-name { font-weight: 700; font-size: 0.875rem; }
+        .material-dim { font-size: 0.75rem; opacity: 0.8; }
+        .material-len { font-size: 1.125rem; font-weight: 600; margin-top: 4px; }
+        .material-actions { position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); display: none; gap: 0.5rem; background: #334155; padding: 5px; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: 1px solid #475569; z-index: 10; }
+        .material-optional-info { position: absolute; top: 5px; right: 5px; display: flex; flex-direction: column; gap: 5px; }
+        .info-badge { font-size: 10px; background-color: rgba(14, 165, 233, 0.7); color: white; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        #qr-code-container { padding: 1rem; background-color: white; border-radius: 0.5rem; margin: 1rem auto; width: fit-content; }
+        #qr-scanner-container { width: 100%; max-width: 400px; margin: auto; }
+
+        /* Stili Calcolatore */
+        .calcolatore-material-btn.active { background-color: #0ea5e9; color: white; border-color: #0ea5e9; }
+        .calcolatore-shape-btn.active { background-color: #0ea5e9; color: white; }
+        .calcolatore-shape-btn.active svg { color: white; }
+        #summary-table th { position: sticky; top: 0; background-color: #1e293b; }
+
+        /* Stili Lavorazioni */
+        .lavorazioni-card {
+            background-color: #1f2937; /* Adattato al tema slate */
+            border: 1px solid #374151;
+        }
+        .lavorazioni-card.completed {
+            opacity: 0.7;
+            background-color: #111827; /* Sfondo più scuro per completati */
+        }
+
+        /* Stili per la Stampa */
+        @media print {
+            body * { visibility: hidden; }
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none; }
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-300">
-    <div class="container mx-auto p-4 md:p-8">
-        <header class="mb-10 text-center">
-            <h1 class="text-5xl font-bold text-slate-100">Magazzino Visuale</h1>
-            <p class="text-xl text-slate-400 mt-2">Connesso a Google Sheets</p>
-        </header>
-        <div id="main-content" class="relative">
-            <div id="app-loader" class="loader-overlay hidden"><div class="spinner"></div></div>
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
-                <div class="card p-6 lg:col-span-2">
-                    <h2 class="text-2xl font-semibold text-slate-100 mb-4 border-b border-slate-700 pb-3"><i class="fas fa-layer-group mr-2 text-sky-500"></i>Crea Rastrelliera</h2>
-                    <form id="add-rack-form"><div class="mb-4"><label for="rack-name" class="block text-sm font-medium text-slate-300 mb-1">Nome</label><input type="text" id="rack-name" class="input-field" placeholder="Es. Rastrelliera A1" required></div><button type="submit" class="btn btn-primary w-full py-3 px-4 text-base"><i class="fas fa-plus-circle mr-2"></i>Aggiungi</button></form>
-                </div>
-                <div class="card p-6 lg:col-span-3">
-                    <h2 class="text-2xl font-semibold text-slate-100 mb-4 border-b border-slate-700 pb-3"><i class="fas fa-dolly mr-2 text-sky-500"></i>Carica Nuova Barra</h2>
-                    <form id="add-material-form"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="md:col-span-2"><label for="material-name" class="block text-sm font-medium text-slate-300 mb-1">Materiale</label><input type="text" id="material-name" class="input-field" placeholder="Es. C40" required></div><div><label for="material-shape" class="block text-sm font-medium text-slate-300 mb-1">Forma</label><select id="material-shape" class="input-field" required><option value="">-- Seleziona --</option><option value="tondo">Tondo</option><option value="quadro">Quadro/Rettangolare</option><option value="esagonale">Esagonale</option><option value="piatto">Piatto</option></select></div><div id="diameter-group" class="hidden"><label for="material-diameter" class="block text-sm font-medium text-slate-300 mb-1">Diametro (mm)</label><input type="number" id="material-diameter" class="input-field" placeholder="Es. 20"></div><div id="dimension-single-group" class="hidden"><label for="material-dimension-single" class="block text-sm font-medium text-slate-300 mb-1">Lato (mm)</label><input type="number" id="material-dimension-single" class="input-field" placeholder="Es. 30"></div><div id="dimension-wh-group" class="hidden md:col-span-2"><div class="grid grid-cols-2 gap-4"><div><label for="material-width" class="block text-sm font-medium text-slate-300 mb-1">Base (mm)</label><input type="number" id="material-width" class="input-field" placeholder="Es. 40"></div><div><label for="material-height" class="block text-sm font-medium text-slate-300 mb-1">Altezza (mm)</label><input type="number" id="material-height" class="input-field" placeholder="Es. 60"></div></div></div><div class="md:col-span-2"><label for="material-length" class="block text-sm font-medium text-slate-300 mb-1">Lunghezza (mm)</label><input type="number" id="material-length" class="input-field" placeholder="Es. 3000" required></div><div class="md:col-span-2"><hr class="border-slate-700 my-2"></div><div class="md:col-span-2"><label for="rack-select" class="block text-sm font-medium text-slate-300 mb-1">Rastrelliera</label><select id="rack-select" class="input-field" required><option value="">-- Scegli --</option></select></div><div><label for="material-commessa" class="block text-sm font-medium text-slate-400 mb-1">Commessa (Opt.)</label><input type="text" id="material-commessa" class="input-field" placeholder="C-1234"></div><div><label for="material-certificato" class="block text-sm font-medium text-slate-400 mb-1">Certificato (Opt.)</label><input type="text" id="material-certificato" class="input-field" placeholder="F-5678"></div></div><button type="submit" class="btn btn-secondary w-full mt-6 py-3 px-4 text-base"><i class="fas fa-check-circle mr-2"></i>Carica Materiale</button></form>
-                </div>
-            </div>
-            <div class="card p-6 mb-8">
-                 <h2 class="text-2xl font-semibold text-slate-100 mb-4 flex items-center"><i class="fas fa-filter mr-3 text-sky-500"></i>Filtri di Ricerca</h2>
-                 <form id="search-filter-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"><div class="lg:col-span-2"><label for="search-text" class="block text-sm font-medium text-slate-300 mb-1">Testo (Mat, Commessa, Cert.)</label><input type="text" id="search-text" class="input-field" placeholder="Cerca..."></div><div><label for="search-shape" class="block text-sm font-medium text-slate-300 mb-1">Forma</label><select id="search-shape" class="input-field"><option value="">Tutte</option><option value="tondo">Tondo</option><option value="quadro">Quadro/Rett.</option><option value="esagonale">Esagonale</option><option value="piatto">Piatto</option></select></div><div><label for="search-dim-min" class="block text-sm font-medium text-slate-300 mb-1">Dim. Min (mm)</label><input type="number" id="search-dim-min" class="input-field" placeholder="Es. 50"></div><div><label for="search-dim-max" class="block text-sm font-medium text-slate-300 mb-1">Dim. Max (mm)</label><input type="number" id="search-dim-max" class="input-field" placeholder="Es. 60"></div><div class="md:col-span-2 lg:col-span-5 flex items-end gap-4 mt-4"><button type="submit" class="btn btn-primary w-full py-2.5"><i class="fas fa-search mr-2"></i>Applica Filtri</button><button type="reset" class="btn bg-slate-600 text-slate-100 w-full py-2.5"><i class="fas fa-times mr-2"></i>Resetta</button><button id="refresh-btn" class="btn btn-primary p-3 aspect-square flex items-center justify-center text-xl"><i id="refresh-icon" class="fas fa-sync-alt"></i></button></div></form>
-             </div>
-            <div id="warehouse-display" class="space-y-8"></div>
+
+    <!-- Schermata di Login -->
+    <div id="login-overlay" class="modal-overlay">
+        <div class="card w-full max-w-sm p-8">
+            <h2 class="text-3xl font-bold text-center text-white mb-2">Accesso Officina</h2>
+            <p class="text-center text-slate-400 mb-8">Inserisci le tue credenziali</p>
+            <form id="login-form">
+                <div class="mb-4"><label for="username" class="block text-sm font-medium text-slate-300 mb-1">Username</label><input type="text" id="username" class="input-field" required></div>
+                <div class="mb-6"><label for="password" class="block text-sm font-medium text-slate-300 mb-1">Password</label><input type="password" id="password" class="input-field" required></div>
+                <div id="login-error" class="text-red-400 text-center text-sm mb-4 h-5"></div>
+                <button type="submit" id="login-btn" class="btn btn-primary w-full py-3 text-base">Accedi</button>
+            </form>
+            <div class="mt-6 text-center"><label for="auth-sheet-url" class="text-xs font-medium text-slate-400 mb-1 block">URL Foglio Autenticazione</label><input type="url" id="auth-sheet-url" class="input-field text-xs" placeholder="URL script di autenticazione..."></div>
         </div>
     </div>
+
+    <!-- Contenitore Principale dell'App -->
+    <div id="app-container" class="hidden">
+        <div class="container mx-auto p-4 md:p-8">
+            <header class="mb-8">
+                <div class="flex flex-col xl:flex-row justify-between items-center gap-6">
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500 text-center xl:text-left">Officina Digitale Integrata</h1>
+                    <div class="flex items-center gap-4">
+                        <div id="user-info" class="text-right"></div>
+                        <button id="logout-btn" class="btn btn-danger px-4 py-2"><i class="fas fa-sign-out-alt mr-2"></i>Logout</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full mt-4">
+                    <!-- URL Foglio Magazzino -->
+                    <div class="card p-3"><label for="magazzino-sheet-link" class="text-sm font-medium text-slate-400 mb-1 block">Link Foglio Magazzino</label><div class="flex gap-2"><input type="url" id="magazzino-sheet-link" class="input-field" placeholder="URL foglio /edit..."><button id="save-magazzino-link-btn" class="btn btn-primary px-3" title="Salva Link"><i class="fas fa-save"></i></button><button id="open-magazzino-link-btn" class="btn btn-secondary px-3" title="Apri Foglio"><i class="fas fa-external-link-alt"></i></button></div></div>
+                    <!-- URL Foglio Calcolatore -->
+                    <div class="card p-3"><label for="calcolatore-sheet-link" class="text-sm font-medium text-slate-400 mb-1 block">Link Foglio Calcolatore</label><div class="flex gap-2"><input type="url" id="calcolatore-sheet-link" class="input-field" placeholder="URL foglio /edit..."><button id="save-calcolatore-link-btn" class="btn btn-primary px-3" title="Salva Link"><i class="fas fa-save"></i></button><button id="open-calcolatore-link-btn" class="btn btn-secondary px-3" title="Apri Foglio"><i class="fas fa-external-link-alt"></i></button></div></div>
+                    <!-- URL Foglio Lavorazioni -->
+                    <div class="card p-3"><label for="lavorazioni-sheet-link" class="text-sm font-medium text-slate-400 mb-1 block">Link Foglio Lavorazioni</label><div class="flex gap-2"><input type="url" id="lavorazioni-sheet-link" class="input-field" placeholder="URL foglio /edit..."><button id="save-lavorazioni-link-btn" class="btn btn-primary px-3" title="Salva Link"><i class="fas fa-save"></i></button><button id="open-lavorazioni-link-btn" class="btn btn-secondary px-3" title="Apri Foglio"><i class="fas fa-external-link-alt"></i></button></div></div>
+                </div>
+                
+                <!-- Navigazione Principale -->
+                <nav class="mt-8 flex border-b border-slate-700">
+                    <button id="nav-magazzino" class="main-nav-btn flex-1 text-base md:text-lg font-semibold transition-colors duration-200 active"><i class="fas fa-warehouse mr-2"></i>Magazzino</button>
+                    <button id="nav-calcolatore" class="main-nav-btn flex-1 text-base md:text-lg font-semibold transition-colors duration-200"><i class="fas fa-calculator mr-2"></i>Calcolatore</button>
+                    <button id="nav-lavorazioni" class="main-nav-btn flex-1 text-base md:text-lg font-semibold transition-colors duration-200"><i class="fas fa-cogs mr-2"></i>Lavorazioni</button>
+                </nav>
+            </header>
+
+            <main>
+                <!-- Vista Magazzino -->
+                <div id="view-magazzino">
+                    <div id="main-content" class="relative">
+                        <div id="app-loader" class="loader-overlay hidden"><div class="spinner"></div></div>
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+                            <div class="card p-6 lg:col-span-2"><h2 class="text-2xl font-semibold text-slate-100 mb-4 border-b-2 border-sky-500 pb-3"><i class="fas fa-layer-group mr-2 text-sky-500"></i>Crea Rastrelliera</h2><form id="add-rack-form"><div class="mb-4"><label for="rack-name" class="block text-sm font-medium text-slate-300 mb-1">Nome</label><input type="text" id="rack-name" class="input-field" placeholder="Es. Rastrelliera A1" required></div><button type="submit" class="btn btn-primary w-full py-3 px-4 text-base"><i class="fas fa-plus-circle mr-2"></i>Aggiungi</button></form></div>
+                            <div class="card p-6 lg:col-span-3"><h2 class="text-2xl font-semibold text-slate-100 mb-4 border-b-2 border-amber-500 pb-3"><i class="fas fa-dolly mr-2 text-amber-500"></i>Carica Nuova Barra</h2><form id="add-material-form"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="md:col-span-2"><label for="material-name" class="block text-sm font-medium text-slate-300 mb-1">Materiale</label><input type="text" id="material-name" class="input-field" placeholder="Es. C40" required></div><div><label for="material-shape" class="block text-sm font-medium text-slate-300 mb-1">Forma</label><select id="material-shape" class="input-field" required><option value="">-- Seleziona --</option><option value="tondo">Tondo</option><option value="quadro">Quadro/Rettangolare</option><option value="esagonale">Esagonale</option><option value="piatto">Piatto</option></select></div><div id="diameter-group" class="hidden"><label for="material-diameter" class="block text-sm font-medium text-slate-300 mb-1">Diametro (mm)</label><input type="number" id="material-diameter" class="input-field" placeholder="Es. 20"></div><div id="dimension-single-group" class="hidden"><label for="material-dimension-single" class="block text-sm font-medium text-slate-300 mb-1">Lato (mm)</label><input type="number" id="material-dimension-single" class="input-field" placeholder="Es. 30"></div><div id="dimension-wh-group" class="hidden md:col-span-2"><div class="grid grid-cols-2 gap-4"><div><label for="material-width" class="block text-sm font-medium text-slate-300 mb-1">Base (mm)</label><input type="number" id="material-width" class="input-field" placeholder="Es. 40"></div><div><label for="material-height" class="block text-sm font-medium text-slate-300 mb-1">Altezza (mm)</label><input type="number" id="material-height" class="input-field" placeholder="Es. 60"></div></div></div><div class="md:col-span-2"><label for="material-length" class="block text-sm font-medium text-slate-300 mb-1">Lunghezza (mm)</label><input type="number" id="material-length" class="input-field" placeholder="Es. 3000" required></div><div class="md:col-span-2"><hr class="border-slate-700 my-2"></div><div class="md:col-span-2"><label for="rack-select" class="block text-sm font-medium text-slate-300 mb-1">Rastrelliera</label><select id="rack-select" class="input-field" required><option value="">-- Scegli --</option></select></div><div><label for="material-commessa" class="block text-sm font-medium text-slate-400 mb-1">Commessa (Opt.)</label><input type="text" id="material-commessa" class="input-field" placeholder="C-1234"></div><div><label for="material-certificato" class="block text-sm font-medium text-slate-400 mb-1">Certificato (Opt.)</label><input type="text" id="material-certificato" class="input-field" placeholder="F-5678"></div></div><button type="submit" class="btn btn-secondary w-full mt-6 py-3 px-4 text-base"><i class="fas fa-check-circle mr-2"></i>Carica Materiale</button></form></div>
+                        </div>
+                        <div class="card p-6 mb-8"><h2 class="text-2xl font-semibold text-slate-100 mb-4 flex items-center border-b-2 border-green-500 pb-3"><i class="fas fa-filter mr-3 text-green-500"></i>Filtri e Azioni</h2><div class="flex flex-col md:flex-row gap-4"><form id="search-filter-form" class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"><div class="lg:col-span-2"><label for="search-text" class="block text-sm font-medium text-slate-300 mb-1">Testo (Mat, Commessa, Cert.)</label><input type="text" id="search-text" class="input-field" placeholder="Cerca..."></div><div><label for="search-shape" class="block text-sm font-medium text-slate-300 mb-1">Forma</label><select id="search-shape" class="input-field"><option value="">Tutte</option><option value="tondo">Tondo</option><option value="quadro">Quadro/Rett.</option><option value="esagonale">Esagonale</option><option value="piatto">Piatto</option></select></div><div><label for="search-dim-min" class="block text-sm font-medium text-slate-300 mb-1">Dim. Min (mm)</label><input type="number" id="search-dim-min" class="input-field" placeholder="Es. 50"></div><div><label for="search-dim-max" class="block text-sm font-medium text-slate-300 mb-1">Dim. Max (mm)</label><input type="number" id="search-dim-max" class="input-field" placeholder="Es. 60"></div><div class="md:col-span-2 lg:col-span-4 flex items-end gap-4 mt-2"><button type="submit" class="btn btn-primary w-full py-2.5"><i class="fas fa-search mr-2"></i>Applica Filtri</button><button type="reset" class="btn bg-slate-600 text-slate-100 w-full py-2.5"><i class="fas fa-times mr-2"></i>Resetta</button></div></form><div class="flex-shrink-0 flex md:flex-col gap-2 mt-4 md:mt-0"><button id="scan-qr-btn" class="btn btn-info w-full py-2.5 flex-1"><i class="fas fa-qrcode mr-2"></i>Scansiona QR</button><button id="refresh-btn" class="btn btn-primary p-3 aspect-square flex items-center justify-center text-xl"><i id="refresh-icon" class="fas fa-sync-alt"></i></button></div></div></div>
+                        <div id="warehouse-display" class="space-y-8"></div>
+                    </div>
+                </div>
+
+                <!-- Vista Calcolatore -->
+                <div id="view-calcolatore" class="hidden">
+                    <div class="card p-6 md:p-8"><div class="text-center mb-8"><h1 class="text-3xl font-bold text-white">Calcolatore Pesi e Costi</h1><p class="text-slate-400 mt-1">Scegli il materiale, la forma, inserisci le dimensioni e calcola!</p></div><div class="mb-8"><h2 class="text-lg font-semibold text-slate-300 mb-3 text-center">1. Seleziona il Materiale</h2><div id="calcolatore-materials-container" class="flex flex-wrap justify-center gap-3"></div></div></div>
+                    <div class="card p-6 md:p-8 mt-8"><h2 class="text-lg font-semibold text-slate-300 mb-6 text-center">2. Seleziona la Forma e Inserisci le Misure</h2><div class="grid grid-cols-1 md:grid-cols-12 gap-8"><div class="md:col-span-4 lg:col-span-3"><div id="calcolatore-shapes-container" class="space-y-2"></div></div><div class="md:col-span-8 lg:col-span-9"><div class="bg-slate-900/50 p-6 rounded-lg shadow-inner space-y-6"><div id="calcolatore-calculation-area"></div><div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-slate-700"><div><label for="commessa-input" class="block text-sm font-medium text-slate-300 mb-1">Numero Commessa</label><input type="text" id="commessa-input" placeholder="Es. C-12345" class="input-field w-full p-3 rounded-lg shadow-sm"></div><div><label for="pezzi-input" class="block text-sm font-medium text-slate-300 mb-1">Numero Pezzi</label><input type="number" id="pezzi-input" value="1" class="input-field w-full p-3 rounded-lg shadow-sm"></div><div><label for="costo-kg-input" class="block text-sm font-medium text-slate-300 mb-1">Costo al Kg (€)</label><input type="text" id="costo-kg-input" value="0" class="input-field w-full p-3 rounded-lg shadow-sm"></div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><button id="calculate-btn" class="btn btn-primary w-full py-3">Calcola</button><button id="save-btn" disabled class="btn btn-success w-full py-3">Salva su Foglio Google</button></div></div><div id="result-container" class="mt-6 p-5 bg-slate-900/50 rounded-lg hidden"><div id="result-display" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center"></div><p id="error-text" class="text-lg font-medium text-red-400 text-center"></p></div><div id="status-container" class="text-center text-sm h-5 mt-2"></div></div></div></div>
+                    <div class="card p-6 md:p-8 mt-8"><div class="text-center mb-8"><h1 class="text-3xl font-bold text-white">Riepilogo Dati Salvati</h1><p class="text-slate-400 mt-1">Visualizza tutti i calcoli salvati nel tuo Foglio Google.</p><button id="load-summary-btn" class="mt-4 btn btn-primary py-2 px-6">Carica / Aggiorna Dati</button></div><div id="summary-table-container" class="max-h-[60vh] overflow-auto rounded-lg border border-slate-700 shadow-inner"></div></div>
+                </div>
+                
+                <!-- Vista Lavorazioni -->
+                <div id="view-lavorazioni" class="hidden">
+                    <!-- Loader Lavorazioni -->
+                    <div id="lavorazioni-loader" class="loader-overlay hidden"><div class="spinner"></div><p class="text-white mt-4 text-lg">Operazione in corso...</p></div>
+                    <!-- Modal di Conferma Lavorazioni -->
+                    <div id="lavorazioni-confirmation-modal" class="modal-overlay hidden"><div class="card max-w-sm w-full p-6 rounded-lg shadow-xl text-center"><h3 class="text-xl font-bold text-white mb-4">Conferma Azione</h3><p id="lavorazioni-modal-message" class="text-slate-300 mb-6">Sei sicuro?</p><div class="flex justify-center gap-4"><button id="lavorazioni-modal-cancel-btn" class="btn btn-neutral">Annulla</button><button id="lavorazioni-modal-confirm-btn" class="btn btn-danger">Conferma</button></div></div></div>
+                    
+                    <div id="lavorazioni-form-section" class="card p-6 mb-8 rounded-lg shadow-lg"><h2 class="text-2xl font-semibold text-white mb-4 border-b border-slate-600 pb-3"><i class="fas fa-plus-circle mr-2 text-sky-400"></i>Aggiungi Nuova Lavorazione</h2><form id="add-lavorazione-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"><div class="lg:col-span-1"><label for="lavorazione-commessa" class="block text-sm mb-1">Commessa</label><input type="text" id="lavorazione-commessa" class="input-field" required></div><div class="lg:col-span-1"><label for="lavorazione-n_disegno" class="block text-sm mb-1">N. Disegno</label><input type="text" id="lavorazione-n_disegno" class="input-field"></div><div class="lg:col-span-1"><label for="lavorazione-cliente" class="block text-sm mb-1">Cliente</label><input type="text" id="lavorazione-cliente" class="input-field" required></div><div class="lg:col-span-1"><label for="lavorazione-fornitore" class="block text-sm mb-1">Fornitore</label><input type="text" id="lavorazione-fornitore" class="input-field"></div><div class="lg:col-span-1"><label for="lavorazione-materiale" class="block text-sm mb-1">Materiale</label><input type="text" id="lavorazione-materiale" class="input-field" required></div><div class="lg:col-span-1"><label for="lavorazione-n_pezzi" class="block text-sm mb-1">N. Pezzi</label><input type="number" id="lavorazione-n_pezzi" class="input-field"></div><div class="lg:col-span-1"><label for="lavorazione-peso" class="block text-sm mb-1">Peso (Kg)</label><input type="text" id="lavorazione-peso" class="input-field"></div><div class="lg:col-span-1"><label for="lavorazione-commessa_vecchia" class="block text-sm mb-1">Commessa Vecchia</label><input type="text" id="lavorazione-commessa_vecchia" class="input-field"></div><div class="lg:col-span-3"><label for="lavorazione-trattamento_o_lavorazione" class="block text-sm mb-1">Trattamento o Lavorazione</label><input type="text" id="lavorazione-trattamento_o_lavorazione" class="input-field" required></div><div class="lg:col-span-1"><label for="lavorazione-allego_disegno" class="block text-sm mb-1">Allego Disegno?</label><input type="text" id="lavorazione-allego_disegno" placeholder="Sì/No" class="input-field"></div><div class="lg:col-span-4"><label for="lavorazione-note_varie" class="block text-sm mb-1">Note Varie</label><textarea id="lavorazione-note_varie" class="input-field" rows="2"></textarea></div><div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-700"><div><label for="lavorazione-recipient_email" class="block text-sm mb-1 font-semibold text-sky-300"><i class="fas fa-envelope mr-2"></i>Notifica via Email a:</label><input type="email" id="lavorazione-recipient_email" class="input-field" value="oraziocolonnello1@gmail.com"></div><div><label for="lavorazione-recipient_telegram_id" class="block text-sm mb-1 font-semibold text-cyan-300"><i class="fab fa-telegram-plane mr-2"></i>Notifica su Telegram a (Chat ID):</label><input type="text" id="lavorazione-recipient_telegram_id" class="input-field" value="-4923362596"></div></div><div class="lg:col-span-4 mt-2"><button type="submit" id="lavorazione-submit-button" class="btn btn-primary w-full text-base py-3"><i class="fas fa-paper-plane mr-2"></i>Invia a Lavorazione</button></div></form></div>
+                    <div class="card p-4 mb-10 rounded-lg shadow-lg"><h3 class="text-xl font-semibold text-white mb-3"><i class="fas fa-search mr-2"></i>Cerca Lavorazione</h3><div class="flex flex-col sm:flex-row gap-4"><input type="text" id="lavorazione-search-input" class="input-field flex-grow" placeholder="Cerca per Commessa, Cliente, N. Disegno..."><button id="lavorazione-search-button" class="btn btn-primary px-5"><i class="fas fa-search mr-2"></i>Cerca</button><button id="lavorazione-reset-search-button" class="btn btn-neutral px-5"><i class="fas fa-times mr-2"></i>Annulla</button></div></div>
+                    <div class="mt-12"><h2 class="text-3xl font-bold text-white mb-6"><i class="fas fa-shipping-fast mr-3 text-amber-400"></i>Inviati</h2><div id="sent-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div><div id="sent-pagination" class="mt-6 flex justify-center items-center gap-4"></div><p id="no-sent" class="text-slate-400 text-center py-8 card rounded-lg hidden">Nessuna lavorazione inviata.</p></div>
+                    <div class="mt-12"><h2 class="text-3xl font-bold text-white mb-6"><i class="fas fa-undo-alt mr-3 text-sky-400"></i>Tornati</h2><div id="returned-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div><div id="returned-pagination" class="mt-6 flex justify-center items-center gap-4"></div><p id="no-returned" class="text-slate-400 text-center py-8 card rounded-lg hidden">Nessun materiale rientrato.</p></div>
+                    <div class="mt-12"><h2 class="text-3xl font-bold text-white mb-6"><i class="fas fa-check-circle mr-3 text-green-400"></i>Completati</h2><div id="completed-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div><div id="completed-pagination" class="mt-6 flex justify-center items-center gap-4"></div><p id="no-completed" class="text-slate-400 text-center py-8 card rounded-lg hidden">Nessuna lavorazione completata.</p></div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals Generici (usato da Magazzino e Calcolatore) -->
     <div id="action-modal" class="modal-overlay hidden"><div class="modal-content"><h3 class="text-2xl font-bold mb-4 text-slate-100" id="modal-title"></h3><div id="modal-body"></div></div></div>
 
     <script>
-    // Registrazione del Service Worker
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => console.log('Service Worker registrato con successo:', registration))
-                .catch(error => console.log('Registrazione Service Worker fallita:', error));
-        });
-    }
-    // Codice Javascript dell'applicazione (identico a prima)
     document.addEventListener('DOMContentLoaded', () => {
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyaE0na5I-a_nBzUIlmT_49-wmbqb0LGdhEohTqO3EPUiZNTiRpHMuzmwpfRvYHkoU/exec';
-        let warehouseData = [];
-        const dom = {
-            addRackForm: document.getElementById('add-rack-form'),
-            addMaterialForm: document.getElementById('add-material-form'),
-            warehouseDisplay: document.getElementById('warehouse-display'),
-            rackSelect: document.getElementById('rack-select'),
-            refreshBtn: document.getElementById('refresh-btn'),
-            refreshIcon: document.getElementById('refresh-icon'),
-            appLoader: document.getElementById('app-loader'),
-            searchForm: document.getElementById('search-filter-form'),
-            search: { text: document.getElementById('search-text'), shape: document.getElementById('search-shape'), minDim: document.getElementById('search-dim-min'), maxDim: document.getElementById('search-dim-max') },
-            material: { name: document.getElementById('material-name'), shape: document.getElementById('material-shape'), length: document.getElementById('material-length'), diameterGroup: document.getElementById('diameter-group'), diameter: document.getElementById('material-diameter'), dimensionSingleGroup: document.getElementById('dimension-single-group'), dimensionSingle: document.getElementById('material-dimension-single'), dimensionWhGroup: document.getElementById('dimension-wh-group'), width: document.getElementById('material-width'), height: document.getElementById('material-height'), commessa: document.getElementById('material-commessa'), certificato: document.getElementById('material-certificato') },
-            modal: { self: document.getElementById('action-modal'), title: document.getElementById('modal-title'), body: document.getElementById('modal-body') }
+
+        // --- URLS E CONFIGURAZIONI ---
+        
+        // URL degli script di Google Apps per il funzionamento dell'applicazione (devono terminare con /exec)
+        const MAGAZZINO_SCRIPT_URL_EXEC_DEFAULT = 'https://script.google.com/macros/s/AKfycbw2uQeMydxL4gHMaGIcCxt2xv5XYFCtmD673FKCQnJv_72KotAC5nEgioRbbL2UkfTO-Q/exec';
+        const CALCOLATORE_SCRIPT_URL_EXEC_DEFAULT = 'https://script.google.com/macros/s/AKfycbwVcO-0RKzO_BMk1uFf3ISMOTsuoNXk0A5dmavTagUcI8NBE11Zmir_GcOD1RR6GoqWUw/exec';
+        const LAVORAZIONI_SCRIPT_URL_EXEC_DEFAULT = 'https://script.google.com/macros/s/AKfycbxHhA5DlziHjB9O_xadPs80AteAhbcNw3ClOrx78SO-fjeBRzXoxYA1U5Mg5J4CDARW/exec';
+        const AUTH_SCRIPT_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbyOK96_WFsd5w6VUjnxBbG1izHEqgWcET25FcGCoLcOeLFzyD4qHcIfZw4wdHU3dw/exec';
+
+        // URL dei fogli di calcolo per l'apertura rapida (link diretti /edit)
+        const MAGAZZINO_SHEET_LINK_DEFAULT = 'https://docs.google.com/spreadsheets/d/1pHDf5vYqR2pEuX3WJ7Vl9tJeqk-rVDVryAajDutOT8A/edit';
+        const CALCOLATORE_SHEET_LINK_DEFAULT = 'https://docs.google.com/spreadsheets/d/1hSzGImNIx4REWf3UySznG2VvRMFUlylVx5WNQrz1QPY/edit';
+        const LAVORAZIONI_SHEET_LINK_DEFAULT = 'https://docs.google.com/spreadsheets/d/1zesxtDUQRQvD_0ZHMd2hdewXV5ytwSKJ-BflB6Z-UHs/edit?gid=2050627289#gid=2050627289';
+
+        // Variabili globali per gli URL degli script in uso
+        let MAGAZZINO_SCRIPT_URL = MAGAZZINO_SCRIPT_URL_EXEC_DEFAULT;
+        let CALCOLATORE_SCRIPT_URL = CALCOLATORE_SCRIPT_URL_EXEC_DEFAULT;
+        let LAVORAZIONI_SCRIPT_URL = LAVORAZIONI_SCRIPT_URL_EXEC_DEFAULT;
+        let AUTH_SCRIPT_URL = '';
+
+
+        // --- GESTIONE LOGIN ---
+        window.AuthApp = {
+            dom: { loginOverlay: document.getElementById('login-overlay'), appContainer: document.getElementById('app-container'), loginForm: document.getElementById('login-form'), loginBtn: document.getElementById('login-btn'), logoutBtn: document.getElementById('logout-btn'), loginError: document.getElementById('login-error'), usernameInput: document.getElementById('username'), userInfo: document.getElementById('user-info'), authSheetUrlInput: document.getElementById('auth-sheet-url') },
+            init() { this.dom.authSheetUrlInput.value = localStorage.getItem('authSheetUrl') || AUTH_SCRIPT_URL_DEFAULT; this.addEventListeners(); if (sessionStorage.getItem('isLoggedIn') === 'true') { this.showApp(); } else { this.showLogin(); } },
+            addEventListeners() { this.dom.loginForm.addEventListener('submit', (e) => this.handleLogin(e)); this.dom.logoutBtn.addEventListener('click', () => this.logout()); this.dom.authSheetUrlInput.addEventListener('change', (e) => { localStorage.setItem('authSheetUrl', e.target.value); alert('URL per l\'autenticazione salvato.'); }); },
+            async handleLogin(e) { e.preventDefault(); this.dom.loginError.textContent = ''; this.dom.loginBtn.disabled = true; this.dom.loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accesso...'; AUTH_SCRIPT_URL = this.dom.authSheetUrlInput.value.trim(); if (!AUTH_SCRIPT_URL) { this.dom.loginError.textContent = 'Inserire l\'URL dello script di autenticazione.'; this.dom.loginBtn.disabled = false; this.dom.loginBtn.innerHTML = 'Accedi'; return; } const username = this.dom.usernameInput.value; const password = document.getElementById('password').value; try { const response = await fetch(AUTH_SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'login', username, password }) }); const result = await response.json(); if (result.status === 'success') { sessionStorage.setItem('isLoggedIn', 'true'); sessionStorage.setItem('username', username); this.showApp(); } else { this.dom.loginError.textContent = result.message || 'Credenziali non valide.'; } } catch (error) { console.error('Login error:', error); this.dom.loginError.textContent = 'Errore di connessione. Controlla l\'URL e la console.'; } finally { this.dom.loginBtn.disabled = false; this.dom.loginBtn.innerHTML = 'Accedi'; } },
+            logout() { sessionStorage.removeItem('isLoggedIn'); sessionStorage.removeItem('username'); this.showLogin(); },
+            showApp() { this.dom.loginOverlay.classList.add('hidden'); this.dom.appContainer.classList.remove('hidden'); const username = sessionStorage.getItem('username'); this.dom.userInfo.innerHTML = `<p class="font-semibold text-white">${username}</p><p class="text-xs text-slate-400">Online</p>`; App.init(); },
+            showLogin() { this.dom.loginOverlay.classList.remove('hidden'); this.dom.appContainer.classList.add('hidden'); }
         };
-        const showLoader = (show) => {
-            dom.appLoader.classList.toggle('hidden', !show);
-            document.querySelectorAll('button, input, select').forEach(el => el.disabled = show);
-        };
-        const fetchData = async () => {
-            if (!SCRIPT_URL.startsWith('https')) {
-                showModal('Configurazione Necessaria', '<p>Per favore, incolla l\'URL della tua Web App di Google Apps Script nella variabile SCRIPT_URL.</p>');
-                return;
-            }
-            dom.refreshIcon.classList.add('fa-spin-custom');
-            dom.refreshBtn.disabled = true;
-            try {
-                const response = await fetch(SCRIPT_URL);
-                if (!response.ok) throw new Error(`Errore di rete: ${response.statusText}`);
-                warehouseData = await response.json();
-                renderWarehouse();
-            } catch (error) {
-                console.error('Errore nel caricamento dati:', error);
-                showModal('Errore di Caricamento', `<p>Impossibile caricare i dati.</p><p class="mt-2 text-sm text-slate-400">${error.message}</p>`);
-            } finally {
-                dom.refreshIcon.classList.remove('fa-spin-custom');
-                dom.refreshBtn.disabled = false;
-            }
-        };
-        const saveData = async () => {
-            showLoader(true);
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(warehouseData)
-                });
-            } catch (error) {
-                console.error('Errore nel salvataggio dati:', error);
-                showModal('Errore di Salvataggio', `<p>Impossibile salvare i dati.</p><p class="mt-2 text-sm text-slate-400">${error.message}</p>`);
-            } finally {
-                await fetchData();
-                showLoader(false);
-            }
-        };
-        const showModal = (title, content, callback) => {
-            dom.modal.title.textContent = title;
-            dom.modal.body.innerHTML = content;
-            dom.modal.self.classList.remove('hidden');
-            if(callback) callback();
-        };
-        const hideModal = () => dom.modal.self.classList.add('hidden');
-        const checkDimensionInRange = (material, minDim, maxDim) => {
-            if (isNaN(minDim) && isNaN(maxDim)) return true;
-            const matDim = material.dimension;
-            if (material.shape === 'tondo' || material.shape === 'esagonale') {
-                const d = parseFloat(matDim);
-                if (isNaN(d)) return false;
-                const minOK = isNaN(minDim) || d >= minDim;
-                const maxOK = isNaN(maxDim) || d <= maxDim;
-                return minOK && maxOK;
-            } else {
-                const dims = matDim.split('x').map(s => parseFloat(s.trim()));
-                return dims.some(d => {
-                    if (isNaN(d)) return false;
-                    const minOK = isNaN(minDim) || d >= minDim;
-                    const maxOK = isNaN(maxDim) || d <= maxDim;
-                    return minOK && maxOK;
-                });
-            }
-        };
-        const renderWarehouse = () => {
-            const textFilter = dom.search.text.value.toLowerCase().trim();
-            const shapeFilter = dom.search.shape.value;
-            const minDimFilter = parseFloat(dom.search.minDim.value);
-            const maxDimFilter = parseFloat(dom.search.maxDim.value);
-            const hasActiveFilters = textFilter || shapeFilter || !isNaN(minDimFilter) || !isNaN(maxDimFilter);
-            dom.warehouseDisplay.innerHTML = '';
-            dom.rackSelect.innerHTML = '<option value="">-- Scegli --</option>';
-            if (warehouseData.length === 0) {
-                dom.warehouseDisplay.innerHTML = `<div class="text-center py-16 card"><i class="fas fa-warehouse text-5xl text-slate-500 mb-4"></i><h3 class="text-2xl font-semibold text-slate-300">Il magazzino è vuoto.</h3><p class="text-slate-400">Inizia creando una rastrelliera.</p></div>`;
-                return;
-            }
-            warehouseData.forEach(rack => {
-                const option = document.createElement('option');
-                option.value = rack.id;
-                option.textContent = rack.name;
-                dom.rackSelect.appendChild(option);
-                const rackCard = document.createElement('div');
-                rackCard.className = 'card p-4';
-                const filteredMaterials = (rack.materials || []).filter(material => {
-                    const textMatch = !textFilter || `${material.name} ${material.commessa || ''} ${material.certificato || ''}`.toLowerCase().includes(textFilter);
-                    const shapeMatch = !shapeFilter || material.shape === shapeFilter;
-                    const dimMatch = checkDimensionInRange(material, minDimFilter, maxDimFilter);
-                    return textMatch && shapeMatch && dimMatch;
-                });
-                let materialsHTML = '';
-                if (filteredMaterials.length > 0) {
-                    filteredMaterials.sort((a,b) => a.name.localeCompare(b.name)).forEach(material => {
-                        let optionalInfoHTML = '';
-                        if (material.commessa || material.certificato) {
-                            optionalInfoHTML += '<div class="material-optional-info">';
-                            if (material.commessa) optionalInfoHTML += `<span class="info-badge" title="Commessa: ${material.commessa}"><i class="fas fa-briefcase"></i></span>`;
-                            if (material.certificato) optionalInfoHTML += `<span class="info-badge" title="Certificato: ${material.certificato}"><i class="fas fa-file-alt"></i></span>`;
-                            optionalInfoHTML += '</div>';
-                        }
-                        const dimPrefix = material.shape === 'tondo' ? 'Ø' : '';
-                        materialsHTML += `<div class="material-shape ${material.shape} ${hasActiveFilters ? 'highlight' : ''}">${optionalInfoHTML}<span class="material-name">${material.name}</span><span class="material-dim">${dimPrefix}${material.dimension} mm</span><span class="material-len">${material.length} mm</span><div class="material-actions"><button data-action="unload" data-rack-id="${rack.id}" data-material-id="${material.id}" class="btn btn-warning text-xs w-9 h-9 rounded-full flex items-center justify-center" title="Scarica"><i class="fas fa-arrow-down"></i></button><button data-action="delete" data-rack-id="${rack.id}" data-material-id="${material.id}" class="btn btn-danger text-xs w-9 h-9 rounded-full flex items-center justify-center" title="Elimina"><i class="fas fa-trash-alt"></i></button></div></div>`;
+
+        // --- GESTIONE VISTE E NAVIGAZIONE ---
+        window.App = {
+            initialized: false,
+            dom: {
+                navMagazzino: document.getElementById('nav-magazzino'), navCalcolatore: document.getElementById('nav-calcolatore'), navLavorazioni: document.getElementById('nav-lavorazioni'),
+                viewMagazzino: document.getElementById('view-magazzino'), viewCalcolatore: document.getElementById('view-calcolatore'), viewLavorazioni: document.getElementById('view-lavorazioni'),
+                magazzinoSheetLinkInput: document.getElementById('magazzino-sheet-link'), saveMagazzinoLinkBtn: document.getElementById('save-magazzino-link-btn'), openMagazzinoLinkBtn: document.getElementById('open-magazzino-link-btn'),
+                calcolatoreSheetLinkInput: document.getElementById('calcolatore-sheet-link'), saveCalcolatoreLinkBtn: document.getElementById('save-calcolatore-link-btn'), openCalcolatoreLinkBtn: document.getElementById('open-calcolatore-link-btn'),
+                lavorazioniSheetLinkInput: document.getElementById('lavorazioni-sheet-link'), saveLavorazioniLinkBtn: document.getElementById('save-lavorazioni-link-btn'), openLavorazioniLinkBtn: document.getElementById('open-lavorazioni-link-btn'),
+            },
+            init() {
+                if(this.initialized) return;
+                this.setupEventListeners();
+                this.loadLinks();
+                MagazzinoApp.init(); CalcolatoreApp.init(); LavorazioniApp.init();
+                this.initialized = true;
+            },
+            setupEventListeners() {
+                this.dom.navMagazzino.addEventListener('click', () => this.switchView('magazzino'));
+                this.dom.navCalcolatore.addEventListener('click', () => this.switchView('calcolatore'));
+                this.dom.navLavorazioni.addEventListener('click', () => this.switchView('lavorazioni'));
+                
+                const setupLinkButtons = (type) => {
+                    const typeLower = type.toLowerCase();
+                    this.dom[`save${type}LinkBtn`].addEventListener('click', () => {
+                        const url = this.dom[`${typeLower}SheetLinkInput`].value;
+                        localStorage.setItem(`${typeLower}SheetLink`, url);
+                        alert(`Link al Foglio ${type} salvato!`);
                     });
-                } else {
-                     materialsHTML = `<p class="text-slate-400 m-auto"><i class="fas fa-box-open mr-2"></i>Nessun materiale presente ${hasActiveFilters ? 'per i filtri applicati' : ''}.</p>`;
-                }
-                rackCard.innerHTML = `<h3 class="text-3xl font-bold mb-4 flex items-center text-slate-200"><i class="fas fa-layer-group mr-3 text-sky-500"></i>${rack.name}</h3><div id="rack-visual-${rack.id}" class="rack-visualization">${materialsHTML}</div>`;
-                dom.warehouseDisplay.appendChild(rackCard);
-            });
-        };
-        dom.refreshBtn.addEventListener('click', fetchData);
-        dom.searchForm.addEventListener('submit', e => { e.preventDefault(); renderWarehouse(); });
-        dom.searchForm.addEventListener('reset', () => { setTimeout(renderWarehouse, 0); });
-        dom.material.shape.addEventListener('change', () => {
-            const selectedShape = dom.material.shape.value;
-            dom.material.diameterGroup.classList.add('hidden');
-            dom.material.dimensionSingleGroup.classList.add('hidden');
-            dom.material.dimensionWhGroup.classList.add('hidden');
-            dom.material.diameter.required = false;
-            dom.material.dimensionSingle.required = false;
-            dom.material.width.required = false;
-            dom.material.height.required = false;
-            if (selectedShape === 'tondo') { dom.material.diameterGroup.classList.remove('hidden'); dom.material.diameter.required = true; } 
-            else if (selectedShape === 'esagonale') { dom.material.dimensionSingleGroup.classList.remove('hidden'); dom.material.dimensionSingle.required = true; } 
-            else if (selectedShape === 'quadro' || selectedShape === 'piatto') { dom.material.dimensionWhGroup.classList.remove('hidden'); dom.material.width.required = true; dom.material.height.required = true; }
-        });
-        dom.addRackForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const rackName = document.getElementById('rack-name').value.trim();
-            if (!rackName) return;
-            if (warehouseData.find(rack => rack.name.toLowerCase() === rackName.toLowerCase())) {
-                showModal('Attenzione', '<p>Esiste già una rastrelliera con questo nome.</p><div class="text-right mt-6"><button id="cancel-btn" class="btn bg-slate-600 text-slate-100 py-2 px-4">Chiudi</button></div>');
-                document.getElementById('cancel-btn').onclick = hideModal;
-                return;
-            }
-            warehouseData.push({ id: Date.now(), name: rackName, materials: [] });
-            document.getElementById('rack-name').value = '';
-            await saveData();
-        });
-        dom.addMaterialForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const selectedRackId = parseInt(dom.rackSelect.value, 10);
-            const shape = dom.material.shape.value;
-            let dimension = '';
-            if (shape === 'tondo') { dimension = dom.material.diameter.value; } 
-            else if (shape === 'esagonale') { dimension = dom.material.dimensionSingle.value; } 
-            else if (shape === 'quadro' || shape === 'piatto') { const width = dom.material.width.value; const height = dom.material.height.value; if(width && height) dimension = `${width}x${height}`; }
-            if (isNaN(selectedRackId) || !dimension || !shape) {
-                showModal('Attenzione', '<p>Compila tutti i campi richiesti per il materiale (forma, dimensione, etc.).</p><div class="text-right mt-6"><button id="cancel-btn" class="btn bg-slate-600 text-slate-100 py-2 px-4">Chiudi</button></div>');
-                document.getElementById('cancel-btn').onclick = hideModal;
-                return;
-            }
-            const rack = warehouseData.find(r => r.id === selectedRackId);
-            if (rack) {
-                const newMaterial = { id: Date.now(), name: dom.material.name.value.trim().toUpperCase(), length: parseInt(dom.material.length.value, 10), shape, dimension, commessa: dom.material.commessa.value.trim().toUpperCase(), certificato: dom.material.certificato.value.trim().toUpperCase() };
-                if (!rack.materials) rack.materials = [];
-                rack.materials.push(newMaterial);
-                dom.addMaterialForm.reset();
-                dom.material.diameterGroup.classList.add('hidden');
-                dom.material.dimensionSingleGroup.classList.add('hidden');
-                dom.material.dimensionWhGroup.classList.add('hidden');
-                await saveData();
-            }
-        });
-        dom.modal.self.addEventListener('click', (e) => { if (e.target.id === 'cancel-btn' || e.target.classList.contains('modal-overlay')) hideModal(); });
-        dom.warehouseDisplay.addEventListener('click', (e) => {
-            const button = e.target.closest('button[data-action]');
-            if (!button) return;
-            const action = button.dataset.action;
-            const rackId = parseInt(button.dataset.rackId);
-            const materialId = parseInt(button.dataset.materialId);
-            const rack = warehouseData.find(r => r.id === rackId);
-            if (!rack) return;
-            const materialIndex = rack.materials.findIndex(m => m.id === materialId);
-            if (materialIndex === -1) return;
-            const material = rack.materials[materialIndex];
-            if (action === 'delete') {
-                const modalContent = `<p class="mb-6 text-slate-300">Sei sicuro di voler eliminare questa barra di <b>${material.name}</b>?</p><div class="flex justify-end space-x-4"><button id="cancel-btn" class="btn bg-slate-600 text-slate-100 py-2 px-5">Annulla</button><button id="confirm-delete-btn" class="btn btn-danger py-2 px-5">Elimina</button></div>`;
-                showModal('Conferma Eliminazione', modalContent, () => {
-                    document.getElementById('confirm-delete-btn').onclick = async () => {
-                        rack.materials.splice(materialIndex, 1);
-                        hideModal();
-                        await saveData();
-                    };
-                });
-            } else if (action === 'unload') {
-                const modalContent = `<p class="mb-4 text-slate-300">Da: <b>${material.name}</b><br>Lunghezza attuale: <b>${material.length} mm</b></p><form id="unload-form"><label for="unload-length" class="block text-sm font-medium text-slate-300 mb-1">Lunghezza da scaricare (mm)</label><input type="number" id="unload-length" class="input-field" min="1" max="${material.length}" required><div class="mt-6 flex justify-end space-x-4"><button type="button" id="cancel-btn" class="btn bg-slate-600 text-slate-100 py-2 px-5">Annulla</button><button type="submit" class="btn btn-warning py-2 px-5">Conferma</button></div></form>`;
-                showModal('Scarica Materiale', modalContent, () => {
-                    document.getElementById('unload-length').focus();
-                    document.getElementById('unload-form').onsubmit = async (event) => {
-                        event.preventDefault();
-                        const lengthToUnload = parseInt(document.getElementById('unload-length').value, 10);
-                        if (isNaN(lengthToUnload) || lengthToUnload <= 0 || lengthToUnload > material.length) {
-                             showModal('Errore', '<p>Inserire una lunghezza valida.</p><div class="text-right mt-6"><button id="cancel-btn" class="btn bg-slate-600 text-slate-100 py-2 px-4">Chiudi</button></div>');
-                             document.getElementById('cancel-btn').onclick = hideModal;
-                             return;
+                    this.dom[`open${type}LinkBtn`].addEventListener('click', () => {
+                        const url = this.dom[`${typeLower}SheetLinkInput`].value;
+                        if (!url) {
+                            alert(`Per favore, inserisci e salva prima un link per il Foglio ${type}.`);
+                            return;
                         }
-                        material.length -= lengthToUnload;
-                        if (material.length <= 0) rack.materials.splice(materialIndex, 1);
-                        hideModal();
-                        await saveData();
-                    };
+                        window.open(url, '_blank');
+                    });
+                };
+                setupLinkButtons('Magazzino');
+                setupLinkButtons('Calcolatore');
+                setupLinkButtons('Lavorazioni');
+            },
+            loadLinks() {
+                this.dom.magazzinoSheetLinkInput.value = localStorage.getItem('magazzinoSheetLink') || MAGAZZINO_SHEET_LINK_DEFAULT;
+                this.dom.calcolatoreSheetLinkInput.value = localStorage.getItem('calcolatoreSheetLink') || CALCOLATORE_SHEET_LINK_DEFAULT;
+                this.dom.lavorazioniSheetLinkInput.value = localStorage.getItem('lavorazioniSheetLink') || LAVORAZIONI_SHEET_LINK_DEFAULT;
+            },
+            switchView(viewName) {
+                const views = ['magazzino', 'calcolatore', 'lavorazioni'];
+                views.forEach(v => {
+                    this.dom[`view${v.charAt(0).toUpperCase() + v.slice(1)}`].classList.toggle('hidden', v !== viewName);
+                    this.dom[`nav${v.charAt(0).toUpperCase() + v.slice(1)}`].classList.toggle('active', v === viewName);
+                });
+                if (viewName !== 'magazzino' && MagazzinoApp.qrScanner) {
+                    MagazzinoApp.stopScanner();
+                }
+            }
+        };
+
+        // --- LOGICA MAGAZZINO ---
+        window.MagazzinoApp = {
+            initialized: false, warehouseData: [], qrScanner: null, materialColorMap: { 'ACCIAIO': 'from-slate-500 to-slate-700', 'C40': 'from-gray-500 to-gray-700', '38NCD4': 'from-blue-500 to-blue-700', 'GHISA': 'from-zinc-600 to-zinc-800', 'ALLUMINIO': 'from-sky-300 to-sky-500', 'OTTONE': 'from-yellow-400 to-yellow-600', 'BRONZO': 'from-orange-600 to-orange-800', 'RAME': 'from-red-500 to-red-700', 'TITANIO': 'from-indigo-400 to-indigo-600', 'PVC': 'from-gray-200 to-gray-400 text-black', 'default': 'from-slate-600 to-slate-800' },
+            dom: { addRackForm: document.getElementById('add-rack-form'), addMaterialForm: document.getElementById('add-material-form'), warehouseDisplay: document.getElementById('warehouse-display'), rackSelect: document.getElementById('rack-select'), refreshBtn: document.getElementById('refresh-btn'), refreshIcon: document.getElementById('refresh-icon'), appLoader: document.getElementById('app-loader'), searchForm: document.getElementById('search-filter-form'), search: { text: document.getElementById('search-text'), shape: document.getElementById('search-shape'), minDim: document.getElementById('search-dim-min'), maxDim: document.getElementById('search-dim-max') }, material: { name: document.getElementById('material-name'), shape: document.getElementById('material-shape'), length: document.getElementById('material-length'), diameterGroup: document.getElementById('diameter-group'), diameter: document.getElementById('material-diameter'), dimensionSingleGroup: document.getElementById('dimension-single-group'), dimensionSingle: document.getElementById('material-dimension-single'), dimensionWhGroup: document.getElementById('dimension-wh-group'), width: document.getElementById('material-width'), height: document.getElementById('material-height'), commessa: document.getElementById('material-commessa'), certificato: document.getElementById('material-certificato') }, modal: { self: document.getElementById('action-modal'), title: document.getElementById('modal-title'), body: document.getElementById('modal-body') }, scanQrBtn: document.getElementById('scan-qr-btn') },
+            init() { if(this.initialized) { this.fetchData(); return; } this.fetchData(); this.addEventListeners(); this.initialized = true; },
+            getMaterialColorClass(name) { const upperName = String(name || '').toUpperCase(); for (const key in this.materialColorMap) { if (key !== 'default' && upperName.includes(key)) { return this.materialColorMap[key]; } } return this.materialColorMap['default']; },
+            showLoader(show) { this.dom.appLoader.classList.toggle('hidden', !show); document.querySelectorAll('#view-magazzino button, #view-magazzino input, #view-magazzino select').forEach(el => el.disabled = show); },
+            async fetchData() { if (!MAGAZZINO_SCRIPT_URL) { this.showModal('Errore', '<p>URL dello script di magazzino non definito.</p>'); return; } this.dom.refreshIcon.classList.add('fa-spin-custom'); this.dom.refreshBtn.disabled = true; try { const response = await fetch(MAGAZZINO_SCRIPT_URL); if (!response.ok) throw new Error(`Errore di rete: ${response.statusText}`); this.warehouseData = await response.json(); this.renderWarehouse(); } catch (error) { console.error('Errore caricamento dati magazzino:', error); this.showModal('Errore di Connessione', `<div class="text-left"><p class="mb-4 text-slate-300">Impossibile caricare i dati del magazzino.</p><p class="mt-6 text-xs text-slate-500">Dettagli: ${error.message}</p><div class="text-right mt-6"><button onclick="MagazzinoApp.hideModal()" class="btn btn-neutral py-2 px-4">Chiudi</button></div></div>`); } finally { this.dom.refreshIcon.classList.remove('fa-spin-custom'); this.dom.refreshBtn.disabled = false; } },
+            async saveData() { this.showLoader(true); try { await fetch(MAGAZZINO_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(this.warehouseData) }); } catch (error) { console.error('Errore salvataggio dati magazzino:', error); this.showModal('Errore di Salvataggio', `<p>Impossibile salvare i dati del magazzino.</p><p class="mt-2 text-sm text-slate-400">${error.message}</p><div class="text-right mt-6"><button onclick="MagazzinoApp.hideModal()" class="btn btn-neutral py-2 px-4">Chiudi</button></div>`); } finally { await this.fetchData(); this.showLoader(false); } },
+            showModal(title, content, callback) { this.dom.modal.title.textContent = title; this.dom.modal.body.innerHTML = content; this.dom.modal.self.classList.remove('hidden'); if(callback) callback(); },
+            hideModal() { this.dom.modal.self.classList.add('hidden'); },
+            checkDimensionInRange(material, minDim, maxDim) { if (isNaN(minDim) && isNaN(maxDim)) return true; const matDim = material.dimension; if (material.shape === 'tondo' || material.shape === 'esagonale') { const d = parseFloat(matDim); if (isNaN(d)) return false; const minOK = isNaN(minDim) || d >= minDim; const maxOK = isNaN(maxDim) || d <= maxDim; return minOK && maxOK; } else { const dims = String(matDim).split('x').map(s => parseFloat(s.trim())); return dims.some(d => { if (isNaN(d)) return false; const minOK = isNaN(minDim) || d >= minDim; const maxOK = isNaN(maxDim) || d <= maxDim; return minOK && maxOK; }); } },
+            renderWarehouse() { const textFilter = this.dom.search.text.value.toLowerCase().trim(); const shapeFilter = this.dom.search.shape.value; const minDimFilter = parseFloat(this.dom.search.minDim.value); const maxDimFilter = parseFloat(this.dom.search.maxDim.value); const hasActiveFilters = textFilter || shapeFilter || !isNaN(minDimFilter) || !isNaN(maxDimFilter); this.dom.warehouseDisplay.innerHTML = ''; this.dom.rackSelect.innerHTML = '<option value="">-- Scegli --</option>'; if (!this.warehouseData || this.warehouseData.length === 0) { this.dom.warehouseDisplay.innerHTML = `<div class="text-center py-16 card"><i class="fas fa-warehouse text-5xl text-slate-500 mb-4"></i><h3 class="text-2xl font-semibold text-slate-300">Il magazzino è vuoto.</h3><p class="text-slate-400">Inizia creando una rastrelliera.</p></div>`; return; } this.warehouseData.forEach(rack => { const option = document.createElement('option'); option.value = rack.id; option.textContent = rack.name; this.dom.rackSelect.appendChild(option); const rackCard = document.createElement('div'); rackCard.className = 'card p-4'; const filteredMaterials = (rack.materials || []).filter(material => { const textMatch = !textFilter || `${material.name} ${material.commessa || ''} ${material.certificato || ''}`.toLowerCase().includes(textFilter); const shapeMatch = !shapeFilter || material.shape === shapeFilter; const dimMatch = this.checkDimensionInRange(material, minDimFilter, maxDimFilter); return textMatch && shapeMatch && dimMatch; }); let materialsHTML = ''; if (filteredMaterials.length > 0) { filteredMaterials.sort((a,b) => String(a.name).localeCompare(String(b.name))).forEach(material => { let optionalInfoHTML = ''; if (material.commessa || material.certificato) { optionalInfoHTML += '<div class="material-optional-info">'; if (material.commessa) optionalInfoHTML += `<span class="info-badge" title="Commessa: ${material.commessa}"><i class="fas fa-briefcase"></i></span>`; if (material.certificato) optionalInfoHTML += `<span class="info-badge" title="Certificato: ${material.certificato}"><i class="fas fa-file-alt"></i></span>`; optionalInfoHTML += '</div>'; } const dimPrefix = material.shape === 'tondo' ? 'Ø' : ''; const colorClass = this.getMaterialColorClass(material.name); const textColorClass = colorClass.includes('text-black') ? 'text-black' : 'text-white'; materialsHTML += ` <div class="material-container"><div class="material-shape w-28 h-28 sm:w-32 sm:h-32 ${material.shape} ${hasActiveFilters ? 'highlight' : ''} bg-gradient-to-br ${colorClass}">${optionalInfoHTML}<span class="material-name ${textColorClass}">${material.name}</span><span class="material-dim ${textColorClass}">${dimPrefix}${material.dimension} mm</span><span class="material-len ${textColorClass}">${material.length} mm</span></div><div class="material-actions"><button data-action="qr" data-rack-id="${rack.id}" data-material-id="${material.id}" class="btn btn-info text-xs w-8 h-8 rounded-full flex items-center justify-center" title="Genera QR"><i class="fas fa-qrcode"></i></button><button data-action="unload" data-rack-id="${rack.id}" data-material-id="${material.id}" class="btn btn-warning text-xs w-8 h-8 rounded-full flex items-center justify-center" title="Scarica"><i class="fas fa-arrow-down"></i></button><button data-action="delete" data-rack-id="${rack.id}" data-material-id="${material.id}" class="btn btn-danger text-xs w-8 h-8 rounded-full flex items-center justify-center" title="Elimina"><i class="fas fa-trash-alt"></i></button></div></div>`; }); } else { materialsHTML = `<p class="text-slate-400 m-auto"><i class="fas fa-box-open mr-2"></i>Nessun materiale presente ${hasActiveFilters ? 'per i filtri applicati' : ''}.</p>`; } rackCard.innerHTML = `<h3 class="text-3xl font-bold mb-4 flex items-center text-slate-200"><i class="fas fa-layer-group mr-3 text-sky-500"></i>${rack.name}</h3><div class="rack-visualization">${materialsHTML}</div>`; this.dom.warehouseDisplay.appendChild(rackCard); }); },
+            triggerAction(action, rack, material, materialIndex) { if (action === 'delete') { const modalContent = `<p class="mb-6 text-slate-300">Sei sicuro di voler eliminare questa barra di <b>${material.name}</b>?</p><div class="flex justify-end space-x-4"><button onclick="MagazzinoApp.hideModal()" class="btn btn-neutral py-2 px-5">Annulla</button><button id="confirm-delete-btn" class="btn btn-danger py-2 px-5">Elimina</button></div>`; this.showModal('Conferma Eliminazione', modalContent, () => { document.getElementById('confirm-delete-btn').onclick = async () => { rack.materials.splice(materialIndex, 1); this.hideModal(); await this.saveData(); }; }); } else if (action === 'unload') { const modalContent = `<p class="mb-4 text-slate-300">Da: <b>${material.name}</b><br>Lunghezza attuale: <b>${material.length} mm</b></p><form id="unload-form"><label for="unload-length" class="block text-sm font-medium text-slate-300 mb-1">Lunghezza da scaricare (mm)</label><input type="number" id="unload-length" class="input-field" min="1" max="${material.length}" required><div class="mt-6 flex justify-end space-x-4"><button type="button" onclick="MagazzinoApp.hideModal()" class="btn btn-neutral py-2 px-5">Annulla</button><button type="submit" class="btn btn-warning py-2 px-5">Conferma</button></div></form>`; this.showModal('Scarica Materiale', modalContent, () => { document.getElementById('unload-length').focus(); document.getElementById('unload-form').onsubmit = async (event) => { event.preventDefault(); const lengthToUnload = parseInt(document.getElementById('unload-length').value, 10); if (isNaN(lengthToUnload) || lengthToUnload <= 0 || lengthToUnload > material.length) { this.showModal('Errore', '<p>Inserire una lunghezza valida.</p><div class="text-right mt-6"><button onclick="MagazzinoApp.hideModal()" class="btn btn-neutral py-2 px-4">Chiudi</button></div>'); return; } material.length -= lengthToUnload; material.lastModifiedBy = sessionStorage.getItem('username') || 'N/A'; material.lastModifiedDate = new Date().toLocaleString('it-IT'); if (material.length <= 0) rack.materials.splice(materialIndex, 1); this.hideModal(); await this.saveData(); }; }); } else if (action === 'qr') { const qrData = JSON.stringify({ type: 'material-v1', rackId: rack.id, materialId: material.id }); const dimPrefix = material.shape === 'tondo' ? 'Ø' : ''; const modalContent = ` <div id="printable-area"><div class="text-center text-slate-800" style="color: black !important;"><p class="text-lg font-bold">${material.name}</p><p>Dim: ${dimPrefix}${material.dimension} mm</p><p>Lungh: ${material.length} mm</p><p class="text-xs text-gray-600">ID: ${material.id}</p></div><div id="qr-code-container"></div></div><div class="flex justify-end space-x-4 mt-4 no-print"><button onclick="MagazzinoApp.hideModal()" class="btn btn-neutral py-2 px-5">Chiudi</button><button onclick="window.print()" class="btn btn-secondary py-2 px-5"><i class="fas fa-print mr-2"></i>Stampa</button></div>`; this.showModal('Etichetta Materiale', modalContent, () => { new QRCode(document.getElementById("qr-code-container"), { text: qrData, width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H }); }); } },
+            startScanner() { const onScanSuccess = (decodedText, decodedResult) => { this.stopScanner(); this.hideModal(); try { const data = JSON.parse(decodedText); if(data.type !== 'material-v1' || !data.rackId || !data.materialId) { throw new Error('QR Code non valido.'); } const rack = this.warehouseData.find(r => r.id === data.rackId); if (!rack) throw new Error('Rastrelliera non trovata.'); const materialIndex = rack.materials.findIndex(m => m.id === data.materialId); if (materialIndex === -1) throw new Error('Materiale non trovato.'); const material = rack.materials[materialIndex]; this.triggerAction('unload', rack, material, materialIndex); } catch(e) { this.showModal('Errore Scansione', `<p>Il QR code scansionato non è valido o il materiale non è più disponibile.</p><p class="text-xs mt-4 text-slate-400">${e.message}</p><div class="text-right mt-6"><button onclick="MagazzinoApp.hideModal()" class="btn btn-neutral py-2 px-4">Chiudi</button></div>`); } }; const onScanFailure = (error) => {}; const modalContent = ` <div id="qr-scanner-container"></div><p id="scanner-status" class="text-center text-slate-400 mt-4">Puntare la fotocamera verso un codice QR...</p><div class="text-center mt-6"><button id="stop-scanner-btn" class="btn btn-danger py-2 px-5">Chiudi Scanner</button></div>`; this.showModal('Scansiona QR per Scarico', modalContent, () => { this.qrScanner = new Html5Qrcode("qr-scanner-container"); this.qrScanner.start( { facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, onScanFailure ).catch(err => { document.getElementById('scanner-status').textContent = 'Impossibile avviare la fotocamera. Controlla i permessi.'; console.error("Camera start error:", err); }); document.getElementById('stop-scanner-btn').addEventListener('click', () => { this.stopScanner(); this.hideModal(); }); }); },
+            stopScanner() { if (this.qrScanner && this.qrScanner.isScanning) { this.qrScanner.stop().then(() => {}).catch(err => {}).finally(() => { this.qrScanner = null; }); } },
+            addEventListeners() { this.dom.refreshBtn.addEventListener('click', () => this.fetchData()); this.dom.scanQrBtn.addEventListener('click', () => this.startScanner()); this.dom.searchForm.addEventListener('submit', e => { e.preventDefault(); this.renderWarehouse(); }); this.dom.searchForm.addEventListener('reset', () => setTimeout(() => this.renderWarehouse(), 0)); this.dom.material.shape.addEventListener('change', () => { const selectedShape = this.dom.material.shape.value; this.dom.material.diameterGroup.classList.add('hidden'); this.dom.material.dimensionSingleGroup.classList.add('hidden'); this.dom.material.dimensionWhGroup.classList.add('hidden'); this.dom.material.diameter.required = false; this.dom.material.dimensionSingle.required = false; this.dom.material.width.required = false; this.dom.material.height.required = false; if (selectedShape === 'tondo') { this.dom.material.diameterGroup.classList.remove('hidden'); this.dom.material.diameter.required = true; } else if (selectedShape === 'esagonale') { this.dom.material.dimensionSingleGroup.classList.remove('hidden'); this.dom.material.dimensionSingle.required = true; } else if (selectedShape === 'quadro' || selectedShape === 'piatto') { this.dom.material.dimensionWhGroup.classList.remove('hidden'); this.dom.material.width.required = true; this.dom.material.height.required = true; } }); this.dom.addRackForm.addEventListener('submit', async (e) => { e.preventDefault(); const rackName = document.getElementById('rack-name').value.trim(); if (!rackName) return; if (this.warehouseData.find(rack => rack.name.toLowerCase() === rackName.toLowerCase())) { this.showModal('Attenzione', '<p>Esiste già una rastrelliera con questo nome.</p><div class="text-right mt-6"><button onclick="MagazzinoApp.hideModal()" class="btn btn-neutral py-2 px-4">Chiudi</button></div>'); return; } this.warehouseData.push({ id: Date.now(), name: rackName, materials: [] }); document.getElementById('rack-name').value = ''; await this.saveData(); }); this.dom.addMaterialForm.addEventListener('submit', async (e) => { e.preventDefault(); const selectedRackId = parseInt(this.dom.rackSelect.value, 10); const shape = this.dom.material.shape.value; let dimension = ''; if (shape === 'tondo') dimension = this.dom.material.diameter.value; else if (shape === 'esagonale') dimension = this.dom.material.dimensionSingle.value; else if (shape === 'quadro' || shape === 'piatto') { const width = this.dom.material.width.value; const height = this.dom.material.height.value; if(width && height) dimension = `${width}x${height}`; } if (isNaN(selectedRackId) || !dimension || !shape) { this.showModal('Attenzione', '<p>Compila tutti i campi richiesti per il materiale.</p><div class="text-right mt-6"><button onclick="MagazzinoApp.hideModal()" class="btn btn-neutral py-2 px-4">Chiudi</button></div>'); return; } const rack = this.warehouseData.find(r => r.id === selectedRackId); if (rack) { const newMaterial = { id: Date.now(), name: this.dom.material.name.value.trim().toUpperCase(), length: parseInt(this.dom.material.length.value, 10), shape, dimension, commessa: this.dom.material.commessa.value.trim().toUpperCase(), certificato: this.dom.material.certificato.value.trim().toUpperCase(), lastModifiedBy: sessionStorage.getItem('username') || 'N/A', lastModifiedDate: new Date().toLocaleString('it-IT') }; if (!rack.materials) rack.materials = []; rack.materials.push(newMaterial); this.dom.addMaterialForm.reset(); this.dom.material.diameterGroup.classList.add('hidden'); this.dom.material.dimensionSingleGroup.classList.add('hidden'); this.dom.material.dimensionWhGroup.classList.add('hidden'); await this.saveData(); } }); this.dom.modal.self.addEventListener('click', (e) => { if (e.target === this.dom.modal.self) { this.stopScanner(); this.hideModal(); } }); this.dom.warehouseDisplay.addEventListener('click', (e) => { const button = e.target.closest('button[data-action]'); if (!button) return; const action = button.dataset.action; const rackId = parseInt(button.dataset.rackId); const materialId = parseInt(button.dataset.materialId); const rack = this.warehouseData.find(r => r.id === rackId); if (!rack) return; const materialIndex = rack.materials.findIndex(m => m.id === materialId); if (materialIndex === -1) return; const material = rack.materials[materialIndex]; this.triggerAction(action, rack, material, materialIndex); }); }
+        };
+
+        // --- LOGICA CALCOLATORE ---
+        window.CalcolatoreApp = {
+            initialized: false, activeMaterial: 'acciaio', activeShape: 'piatto', lastCalculation: null,
+            configData: { materials: { 'acciaio': { density: 7850, cost: 1.5 }, 'ghisa': { density: 7200, cost: 1.2 }, 'alluminio': { density: 2700, cost: 3.5 }, 'ottone': { density: 8500, cost: 6.0 }, 'bronzo': { density: 8800, cost: 7.5 }, 'rame': { density: 8960, cost: 8.0 }, 'titanio': { density: 4510, cost: 25.0 }, 'pvc': { density: 1400, cost: 2.0 }, }, shapes: { 'piatto': { label: 'Barra Piatta / Lamiera', icon: `<svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 2h18v20H3z" transform="matrix(.8 0 0 .8 2.4 2.4)"/></svg>`, fields: [ { id: 'width', label: 'Larghezza (mm)', default: 100 }, { id: 'height', label: 'Spessore (mm)', default: 10 }, { id: 'length', label: 'Lunghezza (mm)', default: 1000 }, ], formula: (d) => (d.width / 1000) * (d.height / 1000) * (d.length / 1000) }, 'tondo': { label: 'Barra Tonda', icon: `<svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/></svg>`, fields: [ { id: 'diameter', label: 'Diametro (mm)', default: 50 }, { id: 'length', label: 'Lunghezza (mm)', default: 1000 }, ], formula: (d) => Math.PI * Math.pow((d.diameter / 2000), 2) * (d.length / 1000) }, 'tubo_tondo': { label: 'Tubo Tondo', icon: `<svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/></svg>`, fields: [ { id: 'outerDiameter', label: 'Ø Esterno (mm)', default: 50 }, { id: 'thickness', label: 'Spessore (mm)', default: 5 }, { id: 'length', label: 'Lunghezza (mm)', default: 1000 }, ], formula: (d) => { const r_ext = d.outerDiameter / 2000; const r_int = (d.outerDiameter - 2 * d.thickness) / 2000; return (Math.PI * (r_ext**2 - r_int**2)) * (d.length / 1000); } }, 'tubo_quadro': { label: 'Tubo Quadro/Rett.', icon: `<svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>`, fields: [ { id: 'outerWidth', label: 'Largh. Est. (mm)', default: 50 }, { id: 'outerHeight', label: 'Altezza Est. (mm)', default: 50 }, { id: 'thickness', label: 'Spessore (mm)', default: 5 }, { id: 'length', label: 'Lunghezza (mm)', default: 1000 }, ], formula: (d) => (((d.outerWidth/1000) * (d.outerHeight/1000)) - (((d.outerWidth - 2 * d.thickness) / 1000) * ((d.outerHeight - 2 * d.thickness) / 1000))) * (d.length / 1000) }, 'esagonale': { label: 'Barra Esagonale', icon: `<svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M12 2l9.526 5.5v11L12 24l-9.526-5.5v-11L12 2z"/></svg>`, fields: [ { id: 'side', label: 'Lato (mm)', default: 30 }, { id: 'length', label: 'Lunghezza (mm)', default: 1000 }, ], formula: (d) => ((3 * Math.sqrt(3)) / 2) * Math.pow(d.side / 1000, 2) * (d.length / 1000) } } },
+            dom: { loadSummaryBtn: document.getElementById('load-summary-btn'), summaryTableContainer: document.getElementById('summary-table-container'), materialsContainer: document.getElementById('calcolatore-materials-container'), shapesContainer: document.getElementById('calcolatore-shapes-container'), calculationArea: document.getElementById('calcolatore-calculation-area'), commessaInput: document.getElementById('commessa-input'), pezziInput: document.getElementById('pezzi-input'), costoKgInput: document.getElementById('costo-kg-input'), calculateBtn: document.getElementById('calculate-btn'), saveBtn: document.getElementById('save-btn'), resultContainer: document.getElementById('result-container'), resultDisplay: document.getElementById('result-display'), errorText: document.getElementById('error-text'), statusContainer: document.getElementById('status-container') },
+            init() { if(this.initialized) return; this.populateMaterials(); this.populateShapes(); this.renderCalculationArea(); this.addEventListeners(); this.initialized = true; },
+            toLocaleString(num) { return num.toFixed(2).replace('.', ','); },
+            parseLocalFloat(str) { return parseFloat(String(str).replace(',', '.')); },
+            populateMaterials() { this.dom.materialsContainer.innerHTML = ''; for (const key in this.configData.materials) { const btn = document.createElement('button'); btn.className = `calcolatore-material-btn text-slate-300 font-semibold py-2 px-5 border-2 border-slate-600 rounded-full transition-all duration-200 hover:bg-slate-700 hover:border-slate-500`; btn.textContent = key.charAt(0).toUpperCase() + key.slice(1); btn.dataset.material = key; if (key === this.activeMaterial) btn.classList.add('active'); this.dom.materialsContainer.appendChild(btn); } },
+            populateShapes() { this.dom.shapesContainer.innerHTML = ''; for (const key in this.configData.shapes) { const shape = this.configData.shapes[key]; const btn = document.createElement('button'); btn.className = `calcolatore-shape-btn w-full flex items-center text-left p-3 rounded-lg transition-colors duration-200 text-slate-300 hover:bg-slate-700`; btn.dataset.shape = key; if (key === this.activeShape) btn.classList.add('active'); btn.innerHTML = `<div class="mr-4 text-sky-500">${shape.icon}</div><span class="font-semibold">${shape.label}</span>`; this.dom.shapesContainer.appendChild(btn); } },
+            renderCalculationArea() { const shape = this.configData.shapes[this.activeShape]; if (!shape) return; const fieldsHtml = shape.fields.map(field => `<div class="flex-1"><label for="calcolatore-${field.id}" class="block text-sm font-medium text-slate-300 mb-1">${field.label}</label><input type="text" id="calcolatore-${field.id}" value="${field.default}" class="input-field w-full p-3 rounded-lg shadow-sm"></div>`).join(''); this.dom.calculationArea.innerHTML = `<div class="flex items-center mb-6"><div class="text-sky-500 mr-4">${shape.icon.replace('h-8 w-8', 'h-10 w-10')}</div><h3 class="text-xl font-bold text-white">${shape.label}</h3></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${fieldsHtml}</div>`; this.updateCostInput(); this.resetState(); },
+            resetState() { this.dom.resultContainer.classList.add('hidden'); this.dom.saveBtn.disabled = true; this.lastCalculation = null; this.dom.statusContainer.textContent = ''; },
+            updateCostInput() { const cost = this.configData.materials[this.activeMaterial]?.cost || 0; this.dom.costoKgInput.value = this.toLocaleString(cost); },
+            calculateWeight() { const density = this.configData.materials[this.activeMaterial].density; const shape = this.configData.shapes[this.activeShape]; const pezzi = parseInt(this.dom.pezziInput.value) || 1; const commessa = this.dom.commessaInput.value.trim(); const costoKg = this.parseLocalFloat(this.dom.costoKgInput.value) || 0; const dimensions = {}; let hasError = false; shape.fields.forEach(field => { const input = document.getElementById(`calcolatore-${field.id}`); const value = this.parseLocalFloat(input.value); if (isNaN(value) || value <= 0) hasError = true; dimensions[field.id] = value; }); if (hasError) { this.dom.resultDisplay.innerHTML = ''; this.dom.errorText.textContent = 'Per favore, inserisci valori numerici validi e positivi.'; this.dom.resultContainer.classList.remove('hidden'); this.resetState(); return; } const volume = shape.formula(dimensions); const singleWeight = volume * density; const totalWeight = singleWeight * pezzi; const singleCost = singleWeight * costoKg; const totalCost = totalWeight * costoKg; this.dom.errorText.textContent = ''; let resultHtml = `<div class="bg-slate-700 p-4 rounded-lg shadow"><p class="text-sm text-slate-400">Peso Singolo</p><p class="text-2xl font-bold text-white">${this.toLocaleString(singleWeight)} kg</p></div><div class="bg-slate-700 p-4 rounded-lg shadow"><p class="text-sm text-slate-400">Peso Totale (${pezzi} pz)</p><p class="text-2xl font-bold text-white">${this.toLocaleString(totalWeight)} kg</p></div>`; if (costoKg > 0) { resultHtml += `<div class="bg-sky-600/20 p-4 rounded-lg shadow border border-sky-500"><p class="text-sm text-sky-300">Costo Singolo</p><p class="text-2xl font-bold text-white">€ ${this.toLocaleString(singleCost)}</p></div><div class="bg-sky-600 text-white p-4 rounded-lg shadow"><p class="text-sm text-sky-200">Costo Totale (${pezzi} pz)</p><p class="text-2xl font-bold">€ ${this.toLocaleString(totalCost)}</p></div>`; this.dom.resultDisplay.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center'; } else { this.dom.resultDisplay.className = 'grid grid-cols-1 sm:grid-cols-2 gap-4 text-center'; } this.dom.resultDisplay.innerHTML = resultHtml; this.dom.resultContainer.classList.remove('hidden'); this.dom.saveBtn.disabled = false; this.lastCalculation = { commessa: commessa || 'N/D', pezzi, material: this.activeMaterial, shape: shape.label, pesoSingolo: this.toLocaleString(singleWeight), pesoTotale: this.toLocaleString(totalWeight), costoKg: costoKg > 0 ? this.toLocaleString(costoKg) : '', costoSingolo: costoKg > 0 ? this.toLocaleString(singleCost) : '', costoTotale: costoKg > 0 ? this.toLocaleString(totalCost) : '', details: dimensions }; },
+            async saveToSheets() { if (!this.lastCalculation) return; this.dom.saveBtn.disabled = true; this.dom.saveBtn.textContent = 'Salvataggio...'; this.dom.statusContainer.textContent = ''; try { const response = await fetch(CALCOLATORE_SCRIPT_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(this.lastCalculation) }); const result = await response.json(); if (result.status === 'success') { this.dom.statusContainer.textContent = 'Dati salvati con successo!'; this.dom.statusContainer.className = 'text-center text-sm h-5 mt-2 font-bold text-green-400'; } else { throw new Error(result.message); } } catch (error) { this.dom.statusContainer.textContent = `Errore: ${error.message}`; this.dom.statusContainer.className = 'text-center text-sm h-5 mt-2 font-bold text-red-400'; } finally { this.dom.saveBtn.disabled = false; this.dom.saveBtn.textContent = 'Salva su Foglio Google'; } },
+            async loadSummaryData() { this.dom.summaryTableContainer.innerHTML = `<p class="text-center p-10">Caricamento dati in corso...</p>`; try { const response = await fetch(CALCOLATORE_SCRIPT_URL, { method: 'GET', mode: 'cors' }); const result = await response.json(); if (result.status === 'success') { this.renderSummaryTable(result.data.reverse()); } else { throw new Error(result.message); } } catch (error) { console.error('Errore caricamento dati calcolatore:', error); this.dom.summaryTableContainer.innerHTML = `<div class="p-6 text-center text-red-300"><i class="fas fa-exclamation-triangle text-4xl mb-4"></i><h4 class="text-xl font-bold text-white mb-2">Impossibile Caricare il Riepilogo</h4><p class="text-slate-400">Verifica che l'URL dello script del Calcolatore sia corretto e termini con "/exec".</p><p class="mt-4 text-xs text-slate-500">Dettagli tecnici: ${error.message}</p></div>`; } },
+            renderSummaryTable(data) { if (!data || data.length === 0) { this.dom.summaryTableContainer.innerHTML = `<p class="text-center p-10">Nessun dato salvato trovato.</p>`; return; } const headers = Object.keys(data[0]); const thead = `<thead><tr>${headers.map(h => `<th class="p-3 text-sm font-semibold text-left text-slate-300">${h}</th>`).join('')}</tr></thead>`; const tbody = `<tbody>${data.map(row => `<tr class="border-t border-slate-700 hover:bg-slate-700">${headers.map(h => `<td class="p-3 text-sm text-slate-300">${row[h]}</td>`).join('')}</tr>`).join('')}</tbody>`; this.dom.summaryTableContainer.innerHTML = `<table id="summary-table" class="w-full">${thead}${tbody}</table>`; },
+            addEventListeners() { this.dom.materialsContainer.addEventListener('click', (e) => { const btn = e.target.closest('.calcolatore-material-btn'); if (!btn) return; this.activeMaterial = btn.dataset.material; document.querySelector('.calcolatore-material-btn.active').classList.remove('active'); btn.classList.add('active'); this.updateCostInput(); this.resetState(); }); this.dom.shapesContainer.addEventListener('click', (e) => { const btn = e.target.closest('.calcolatore-shape-btn'); if (!btn) return; this.activeShape = btn.dataset.shape; document.querySelector('.calcolatore-shape-btn.active').classList.remove('active'); btn.classList.add('active'); this.renderCalculationArea(); }); this.dom.calculateBtn.addEventListener('click', () => this.calculateWeight()); this.dom.saveBtn.addEventListener('click', () => this.saveToSheets()); this.dom.loadSummaryBtn.addEventListener('click', () => this.loadSummaryData()); }
+        };
+
+        // --- LOGICA LAVORAZIONI ---
+        window.LavorazioniApp = {
+            initialized: false, allFetchedData: [], onConfirmCallback: null,
+            currentData: { sent: [], returned: [], completed: [] },
+            currentPage: { sent: 1, returned: 1, completed: 1 },
+            pageSize: 6,
+            dom: {
+                loader: document.getElementById('lavorazioni-loader'), addForm: document.getElementById('add-lavorazione-form'), submitButton: document.getElementById('lavorazione-submit-button'),
+                searchInput: document.getElementById('lavorazione-search-input'), searchButton: document.getElementById('lavorazione-search-button'), resetSearchButton: document.getElementById('lavorazione-reset-search-button'),
+                confirmationModal: document.getElementById('lavorazioni-confirmation-modal'), modalMessage: document.getElementById('lavorazioni-modal-message'), modalConfirmBtn: document.getElementById('lavorazioni-modal-confirm-btn'), modalCancelBtn: document.getElementById('lavorazioni-modal-cancel-btn'),
+                view: document.getElementById('view-lavorazioni')
+            },
+            init() { if(this.initialized) return; this.addEventListeners(); this.fetchData(); this.initialized = true; },
+            showLoader(show) { this.dom.loader.classList.toggle('hidden', !show); this.dom.submitButton.disabled = show; },
+            fetchData() {
+                if (!LAVORAZIONI_SCRIPT_URL) { this.showLoader(false); return; }
+                this.showLoader(true);
+                const oldScript = document.getElementById('jsonp-script-lavorazioni');
+                if (oldScript) oldScript.remove();
+                const script = document.createElement('script');
+                script.id = 'jsonp-script-lavorazioni';
+                script.src = `${LAVORAZIONI_SCRIPT_URL}?callback=LavorazioniApp.handleDataResponse&t=${new Date().getTime()}`;
+                script.onerror = () => { console.error("Errore critico nel caricamento dello script JSONP per Lavorazioni."); alert("Impossibile caricare i dati delle lavorazioni. Controllare che l'URL dello script sia corretto e termini con /exec."); this.showLoader(false); };
+                document.body.appendChild(script);
+            },
+            handleDataResponse(data) { if (data.error) { console.error("Errore da script lavorazioni:", data.error); this.showLoader(false); return; } this.allFetchedData = data; this.filterAndDisplayData(data); this.showLoader(false); },
+            filterAndDisplayData(data) { this.currentData.sent = data.filter(item => item.stato === 'Inviato').sort((a, b) => a.id - b.id); this.currentData.returned = data.filter(item => item.stato === 'Tornato').sort((a, b) => a.id - b.id); this.currentData.completed = data.filter(item => item.stato === 'Completato').sort((a, b) => b.id - a.id); this.currentPage = { sent: 1, returned: 1, completed: 1 }; this.renderPaginatedList('sent'); this.renderPaginatedList('returned'); this.renderPaginatedList('completed'); },
+            renderPaginatedList(listKey) {
+                const listElement = document.getElementById(`${listKey}-list`);
+                const paginationElement = document.getElementById(`${listKey}-pagination`);
+                const noDataElement = document.getElementById(`no-${listKey}`);
+                const items = this.currentData[listKey];
+                listElement.innerHTML = '';
+                paginationElement.innerHTML = '';
+                noDataElement.classList.toggle('hidden', items.length > 0);
+                if (items.length === 0) return;
+                const totalPages = Math.ceil(items.length / this.pageSize);
+                const page = this.currentPage[listKey];
+                const paginatedItems = items.slice((page - 1) * this.pageSize, page * this.pageSize);
+                paginatedItems.forEach(item => listElement.innerHTML += this.createCardHTML(item));
+                if (totalPages > 1) {
+                    paginationElement.innerHTML = `
+                        <div class="flex justify-between items-center w-full max-w-xs mx-auto">
+                            <button class="btn btn-neutral text-sm py-2 px-3" data-list="${listKey}" data-action="prev" ${page === 1 ? 'disabled' : ''}>
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <span class="text-white font-semibold text-sm">
+                                ${page} / ${totalPages}
+                            </span>
+                            <button class="btn btn-neutral text-sm py-2 px-3" data-list="${listKey}" data-action="next" ${page === totalPages ? 'disabled' : ''}>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            },
+            async postData(action, data) { this.showLoader(true); try { await fetch(LAVORAZIONI_SCRIPT_URL, { method: 'POST', mode: 'no-cors', redirect: 'follow', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, data }) }); await new Promise(resolve => setTimeout(resolve, 2500)); this.fetchData(); } catch (error) { console.error("Errore POST Lavorazioni:", error); this.showLoader(false); } },
+            getStatusBadge(status) { switch(status) { case 'Inviato': return 'bg-amber-500 text-black'; case 'Tornato': return 'bg-sky-500 text-white'; case 'Completato': return 'bg-green-500 text-white'; default: return 'bg-slate-500 text-white'; } },
+            createCardHTML(item) { let actionButtons = ''; if (item.stato === 'Inviato') { actionButtons = `<button data-action="return" class="btn btn-info text-sm py-2 px-3"><i class="fas fa-undo-alt mr-2"></i>Tornato</button>`; } else if (item.stato === 'Tornato') { actionButtons = `<button data-action="complete" class="btn btn-success text-sm py-2 px-3"><i class="fas fa-check mr-2"></i>Completa</button>`; } return ` <div class="lavorazioni-card card p-5 rounded-lg flex flex-col justify-between shadow-md transition-all duration-300 ${item.stato === 'Completato' ? 'completed' : ''}" data-id="${item.id}"><div><div class="flex justify-between items-start mb-3"><h3 class="text-xl font-bold text-white">${item.commessa || ''} - ${item.cliente || ''}</h3><span class="text-xs font-semibold px-2 py-1 rounded-full ${this.getStatusBadge(item.stato)}">${item.stato || 'N/D'}</span></div><p class="text-slate-300 font-medium mb-2">${item.trattamento_o_lavorazione || 'N/D'}</p><div class="text-sm text-slate-400 space-y-1 border-t border-slate-700 pt-3 mt-3"><p><i class="fas fa-hashtag fa-fw mr-2"></i><strong>N. Disegno:</strong> ${item.n_disegno || 'N/D'}</p><p><i class="fas fa-industry fa-fw mr-2"></i><strong>Fornitore:</strong> ${item.fornitore || 'N/D'}</p><p><i class="fas fa-box fa-fw mr-2"></i><strong>Materiale:</strong> ${item.materiale || ''}</p><p><i class="fas fa-boxes fa-fw mr-2"></i><strong>Pezzi:</strong> ${item.n_pezzi || 'N/D'} ${item.peso ? `(${item.peso} Kg)` : ''}</p></div>${item.note_varie ? `<p class="text-sm mt-3 pt-3 border-t border-slate-600 text-slate-400 italic">"${item.note_varie}"</p>` : ''}</div><div class="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-700"><button data-action="reuse" class="btn btn-neutral text-sm py-2 px-3"><i class="fas fa-copy mr-2"></i>Riusa</button>${actionButtons}<button data-action="delete" class="btn bg-slate-600 hover:bg-red-600 text-white text-sm py-2 px-3"><i class="fas fa-trash-alt"></i></button></div></div>`; },
+            populateFormForReuse(item) { document.getElementById('lavorazione-commessa').value = ''; document.getElementById('lavorazione-n_disegno').value = item.n_disegno || ''; document.getElementById('lavorazione-cliente').value = item.cliente || ''; document.getElementById('lavorazione-fornitore').value = item.fornitore || ''; document.getElementById('lavorazione-materiale').value = item.materiale || ''; document.getElementById('lavorazione-n_pezzi').value = item.n_pezzi || ''; document.getElementById('lavorazione-peso').value = item.peso || ''; document.getElementById('lavorazione-trattamento_o_lavorazione').value = item.trattamento_o_lavorazione || ''; document.getElementById('lavorazione-allego_disegno').value = item.allego_disegno || ''; document.getElementById('lavorazione-note_varie').value = item.note_varie || ''; document.getElementById('lavorazione-commessa_vecchia').value = item.commessa || ''; document.getElementById('lavorazioni-form-section').scrollIntoView(); document.getElementById('lavorazione-commessa').focus(); },
+            showConfirmationModal(message, onConfirm) { this.dom.modalMessage.textContent = message; this.onConfirmCallback = onConfirm; this.dom.confirmationModal.classList.remove('hidden'); },
+            addEventListeners() {
+                this.dom.addForm.addEventListener('submit', (e) => { e.preventDefault(); const data = { commessa: document.getElementById('lavorazione-commessa').value.trim(), n_disegno: document.getElementById('lavorazione-n_disegno').value.trim(), cliente: document.getElementById('lavorazione-cliente').value.trim(), fornitore: document.getElementById('lavorazione-fornitore').value.trim(), materiale: document.getElementById('lavorazione-materiale').value.trim(), n_pezzi: document.getElementById('lavorazione-n_pezzi').value.trim(), peso: document.getElementById('lavorazione-peso').value.trim(), commessa_vecchia: document.getElementById('lavorazione-commessa_vecchia').value.trim(), trattamento_o_lavorazione: document.getElementById('lavorazione-trattamento_o_lavorazione').value.trim(), allego_disegno: document.getElementById('lavorazione-allego_disegno').value.trim(), note_varie: document.getElementById('lavorazione-note_varie').value.trim(), recipient_email: document.getElementById('lavorazione-recipient_email').value.trim(), recipient_telegram_id: document.getElementById('lavorazione-recipient_telegram_id').value.trim() }; this.postData('add', data); this.dom.addForm.reset(); });
+                const performSearch = () => { const searchTerm = this.dom.searchInput.value.toLowerCase().trim(); const filteredData = searchTerm ? this.allFetchedData.filter(item => (item.commessa && item.commessa.toLowerCase().includes(searchTerm)) || (item.cliente && item.cliente.toLowerCase().includes(searchTerm)) || (item.n_disegno && item.n_disegno.toLowerCase().includes(searchTerm))) : this.allFetchedData; this.filterAndDisplayData(filteredData); };
+                this.dom.searchButton.addEventListener('click', performSearch);
+                this.dom.searchInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') performSearch(); });
+                this.dom.resetSearchButton.addEventListener('click', () => { this.dom.searchInput.value = ''; this.filterAndDisplayData(this.allFetchedData); });
+                this.dom.modalConfirmBtn.addEventListener('click', () => { if (typeof this.onConfirmCallback === 'function') this.onConfirmCallback(); this.dom.confirmationModal.classList.add('hidden'); this.onConfirmCallback = null; });
+                this.dom.modalCancelBtn.addEventListener('click', () => { this.dom.confirmationModal.classList.add('hidden'); this.onConfirmCallback = null; });
+                this.dom.view.addEventListener('click', (e) => {
+                    const targetButton = e.target.closest('button');
+                    if (!targetButton) return;
+
+                    const cardButtonAction = targetButton.dataset.action;
+                    const paginationButtonAction = targetButton.dataset.action;
+                    const paginationListKey = targetButton.dataset.list;
+
+                    if (cardButtonAction && targetButton.closest('div[data-id]')) {
+                        const card = targetButton.closest('div[data-id]');
+                        const id = card?.dataset.id;
+                        if (!id) return;
+                        const item = this.allFetchedData.find(d => d.id.toString() === id);
+                        if (!item) return;
+                        switch (cardButtonAction) {
+                            case 'delete': this.showConfirmationModal('Sei sicuro di voler eliminare questo elemento? L\'azione è irreversibile.', () => this.postData('delete', { id })); break;
+                            case 'return': this.showConfirmationModal('Segnare come rientrato?', () => this.postData('updateStatus', { id, status: 'Tornato' })); break;
+                            case 'complete': this.showConfirmationModal('Segnare come completata?', () => this.postData('updateStatus', { id, status: 'Completato' })); break;
+                            case 'reuse': this.populateFormForReuse(item); break;
+                        }
+                    } else if (paginationListKey && paginationButtonAction) {
+                        if (paginationButtonAction === 'prev') this.currentPage[paginationListKey]--;
+                        if (paginationButtonAction === 'next') this.currentPage[paginationListKey]++;
+                        this.renderPaginatedList(paginationListKey);
+                    }
                 });
             }
-        });
-        fetchData();
+        };
+
+        // --- AVVIO APPLICAZIONE ---
+        AuthApp.init();
     });
     </script>
 </body>
 </html>
-{
-  "name": "Gestione Magazzino",
-  "short_name": "Magazzino",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
-  "description": "Applicazione per la gestione visuale del magazzino.",
-  "icons": [
-    {
-      "src": "icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
-}
-const CACHE_NAME = 'magazzino-cache-v1';
-const URLS_TO_CACHE = [
-  '/',
-  '/index.html',
-  'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
-];
-
-// Installazione del Service Worker
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Cache aperta');
-        return cache.addAll(URLS_TO_CACHE);
-      })
-  );
-});
-
-// Gestione delle richieste
-self.addEventListener('fetch', event => {
-  // Per le richieste API a Google Script, vai sempre in rete
-  if (event.request.url.includes('script.google.com')) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Se la risorsa è in cache, restituiscila
-        if (response) {
-          return response;
-        }
-        // Altrimenti, recuperala dalla rete
-        return fetch(event.request);
-      })
-  );
-});
-
-// Attivazione e pulizia delle vecchie cache
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-});
